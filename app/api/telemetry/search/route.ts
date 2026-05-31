@@ -40,7 +40,6 @@ export async function POST(request: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
-  console.log('Search telemetry hit:', { query, sessionId });
 
   const { error } = await supabase.from('search_events').insert({
     session_id: sessionId,

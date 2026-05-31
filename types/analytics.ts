@@ -3,9 +3,9 @@ export interface TopSearchItem {
   count: number;
 }
 
-export interface TopGameItem {
-  game_id: number;
-  game_name: string;
+export interface TopAssetItem {
+  ticker: string;
+  company_name: string;
   count: number;
 }
 
@@ -19,27 +19,27 @@ export interface TrendingItem {
   count: number;
 }
 
-export interface ListStats {
-  want_to_play: number;
-  playing: number;
-  finished: number;
+export interface WatchlistStats {
+  watchlist: number;
+  researching: number;
+  invested: number;
   total: number;
 }
 
 export type TopSearchesResponse = { data: TopSearchItem[] };
-export type TopGamesResponse = { data: TopGameItem[] };
+export type TopAssetsResponse = { data: TopAssetItem[] };
 export type SearchVolumeResponse = { data: SearchVolumeItem[] };
 export type TrendingResponse = { data: TrendingItem[] };
-export type ListStatsResponse = { data: ListStats };
+export type WatchlistStatsResponse = { data: WatchlistStats };
 
 export const CHART_COLORS = {
-  indigo: '#6366f1',
+  blue: '#3b82f6',
   emerald: '#10b981',
   amber: '#f59e0b',
-  label: '#94a3b8',
+  label: '#9ca3af',
   grid: 'rgba(255, 255, 255, 0.08)',
-  tooltipBg: '#0f3258',
-  tooltipBorder: 'rgba(255, 255, 255, 0.12)',
+  tooltipBg: '#1e293b',
+  tooltipBorder: '#334155',
 } as const;
 
 export const chartTooltipStyle = {
@@ -50,7 +50,7 @@ export const chartTooltipStyle = {
     boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4)',
   },
   labelStyle: { color: '#e8eef4', fontWeight: 600 },
-  itemStyle: { color: '#94a3b8' },
+  itemStyle: { color: '#9ca3af' },
 };
 
 export const chartAxisStyle = {
@@ -59,9 +59,9 @@ export const chartAxisStyle = {
   tickLine: false,
 };
 
-export const defaultListStats: ListStats = {
-  want_to_play: 0,
-  playing: 0,
-  finished: 0,
+export const defaultWatchlistStats: WatchlistStats = {
+  watchlist: 0,
+  researching: 0,
+  invested: 0,
   total: 0,
 };

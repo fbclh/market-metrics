@@ -32,3 +32,6 @@
     constraint watchlist_session_ticker_unique unique (session_id, ticker)
   );
 */
+/*
+  Analytics RPC functions — run supabase/analytics_functions.sql in the SQL editor.
+*/

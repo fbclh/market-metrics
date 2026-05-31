@@ -197,12 +197,6 @@ export default function StockDetailPage({
     const sessionId = getSessionId();
     const logoUrl = `/api/stocks/${encodeURIComponent(stock.ticker ?? ticker)}/logo`;
 
-    console.log('Saving to watchlist:', {
-      ticker: stock.ticker,
-      status,
-      sessionId,
-    });
-
     setSavingWatchlist(true);
     setWatchlistError(null);
 
@@ -219,8 +213,6 @@ export default function StockDetailPage({
           session_id: sessionId,
         }),
       });
-
-      console.log('Watchlist response:', response);
 
       const payload = await response.json();
 
