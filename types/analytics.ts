@@ -1,11 +1,10 @@
 export interface TopSearchItem {
-  query: string;
+  name: string;
   count: number;
 }
 
 export interface TopAssetItem {
   ticker: string;
-  company_name: string;
   count: number;
 }
 
@@ -15,7 +14,7 @@ export interface SearchVolumeItem {
 }
 
 export interface TrendingItem {
-  query: string;
+  name: string;
   count: number;
 }
 
@@ -26,11 +25,17 @@ export interface WatchlistStats {
   total: number;
 }
 
+export interface SectorItem {
+  sector: string;
+  count: number;
+}
+
 export type TopSearchesResponse = { data: TopSearchItem[] };
 export type TopAssetsResponse = { data: TopAssetItem[] };
 export type SearchVolumeResponse = { data: SearchVolumeItem[] };
 export type TrendingResponse = { data: TrendingItem[] };
 export type WatchlistStatsResponse = { data: WatchlistStats };
+export type SectorBreakdownResponse = { data: SectorItem[] };
 
 export const CHART_COLORS = {
   blue: '#3b82f6',

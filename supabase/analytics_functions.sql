@@ -65,3 +65,17 @@ grant execute on function analytics_top_assets() to anon;
 grant execute on function analytics_search_volume() to anon;
 grant execute on function analytics_trending() to anon;
 grant execute on function analytics_watchlist_stats() to anon;
+
+create or replace function analytics_sector_breakdown()
+returns table(sector text, count bigint)
+language sql
+security definer
+as $$
+  select sector, count(*) as count
+  from watchlist
+  where sector is not null and sector != ''
+  group by sector
+  order by count desc;
+$$;
+
+grant execute on function analytics_sector_breakdown() to anon;

@@ -70,7 +70,8 @@ export async function POST(request: Request) {
   const status = body.status;
   const logoUrl =
     typeof body.logo_url === 'string' ? body.logo_url.trim() : null;
-  const sector = typeof body.sector === 'string' ? body.sector.trim() : null;
+  const sector =
+    typeof body.sector === 'string' ? body.sector.trim() || null : null;
 
   if (!ticker) {
     return NextResponse.json(
@@ -104,17 +105,10 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from('watchlist')
     .upsert(
-      {
-        session_id: sessionId,
-        ticker,
-        company_name: companyName,
-        logo_url: logoUrl,
-        sector,
-        status: status as WatchlistStatus,
-      },
+      { session_id: sessionId, ticker, company_name: companyName, logo_url: logoUrl, sector, status: status as WatchlistStatus },
       { onConflict: 'session_id,ticker' },
     )
-    .select('*')
+    .select()
     .single();
 
   if (error) {

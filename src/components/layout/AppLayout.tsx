@@ -1,4 +1,4 @@
-import { MassiveAttribution } from './massive-attribution';
+import { FmpAttribution } from './fmp-attribution';
 import { Logo } from './Logo';
 
 const layoutStyle = {
@@ -32,7 +32,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <div style={layoutStyle}>
       <main style={mainStyle}>{children}</main>
       <footer style={footerStyle}>
-        <MassiveAttribution />
+        <FmpAttribution />
         <div style={footerBrandStyle}>
           <Logo href="/" />
         </div>

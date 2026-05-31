@@ -1,28 +1,17 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { mergeTopAssetsByTicker } from '@/lib/search-display-names';
 
-function aggregateTopAssets(
-  rows: { ticker: string; company_name: string }[],
-) {
-  const counts = new Map<string, { ticker: string; company_name: string; count: number }>();
+function aggregateTopAssets(rows: { ticker: string }[]) {
+  const counts = new Map<string, number>();
 
   for (const row of rows) {
-    const key = `${row.ticker}::${row.company_name}`;
-    const existing = counts.get(key);
-    if (existing) {
-      existing.count += 1;
-    } else {
-      counts.set(key, {
-        ticker: row.ticker,
-        company_name: row.company_name,
-        count: 1,
-      });
-    }
+    const ticker = row.ticker.trim().toUpperCase();
+    if (!ticker) continue;
+    counts.set(ticker, (counts.get(ticker) ?? 0) + 1);
   }
 
-  return Array.from(counts.values())
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
+  return Array.from(counts.entries()).map(([ticker, count]) => ({ ticker, count }));
 }
 
 export async function GET() {
@@ -33,7 +22,13 @@ export async function GET() {
   const { data, error } = await supabase.rpc('analytics_top_assets');
 
   if (!error) {
-    return NextResponse.json({ data });
+    const rows = (data ?? []).map(
+      (row: { ticker: string; count: number }) => ({
+        ticker: row.ticker,
+        count: Number(row.count),
+      }),
+    );
+    return NextResponse.json({ data: mergeTopAssetsByTicker(rows) });
   }
 
   if (error.code !== 'PGRST202') {
@@ -43,12 +38,14 @@ export async function GET() {
 
   const { data: rows, error: queryError } = await supabase
     .from('asset_views')
-    .select('ticker, company_name');
+    .select('ticker');
 
   if (queryError) {
     console.error('top-assets fallback error:', JSON.stringify(queryError));
     return NextResponse.json({ data: null }, { status: 500 });
   }
 
-  return NextResponse.json({ data: aggregateTopAssets(rows ?? []) });
+  return NextResponse.json({
+    data: mergeTopAssetsByTicker(aggregateTopAssets(rows ?? [])),
+  });
 }

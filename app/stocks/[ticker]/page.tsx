@@ -11,36 +11,22 @@ import {
   type WatchlistStatus,
 } from '@/types/watchlist';
 
-type PreviousClose = {
-  c?: number;
-};
-
 type StockDetail = {
   ticker?: string;
   name?: string;
-  market?: string;
-  locale?: string;
-  primary_exchange?: string;
-  type?: string;
-  description?: string;
-  market_cap?: number;
-  sic_description?: string;
+  sector?: string | null;
+  industry?: string | null;
+  description?: string | null;
+  exchange?: string | null;
+  market_cap?: number | null;
+  price?: number | null;
+  changes?: number | null;
   logo_url?: string | null;
-  branding?: {
-    logo_url?: string;
-    icon_url?: string;
-  };
-  previousClose?: PreviousClose | null;
+  website?: string | null;
 };
 
 function getInitials(ticker: string): string {
   return ticker.slice(0, 2).toUpperCase();
-}
-
-function formatExchange(exchange: string): string {
-  if (exchange === 'XNAS') return 'NASDAQ';
-  if (exchange === 'XNYS') return 'NYSE';
-  return exchange;
 }
 
 function formatCurrency(value: number): string {
@@ -68,6 +54,11 @@ function formatMarketCap(value: number): string {
   return formatCurrency(value);
 }
 
+function formatPriceChange(value: number): string {
+  const prefix = value > 0 ? '+' : '';
+  return `${prefix}${formatCurrency(value)}`;
+}
+
 export default function StockDetailPage({
   params,
 }: {
@@ -81,7 +72,7 @@ export default function StockDetailPage({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [savingWatchlist, setSavingWatchlist] = useState(false);
   const [watchlistError, setWatchlistError] = useState<string | null>(null);
-  const [logoFailed, setLogoFailed] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -110,6 +101,7 @@ export default function StockDetailPage({
 
         if (!cancelled) {
           setStock(data);
+          setLogoError(false);
         }
       } catch (err) {
         if (!cancelled) {
@@ -130,10 +122,6 @@ export default function StockDetailPage({
     return () => {
       cancelled = true;
     };
-  }, [ticker]);
-
-  useEffect(() => {
-    setLogoFailed(false);
   }, [ticker]);
 
   useEffect(() => {
@@ -193,10 +181,6 @@ export default function StockDetailPage({
     }
 
     setDropdownOpen(false);
-
-    const sessionId = getSessionId();
-    const logoUrl = `/api/stocks/${encodeURIComponent(stock.ticker ?? ticker)}/logo`;
-
     setSavingWatchlist(true);
     setWatchlistError(null);
 
@@ -207,10 +191,10 @@ export default function StockDetailPage({
         body: JSON.stringify({
           ticker: stock.ticker,
           company_name: stock.name,
-          logo_url: logoUrl,
-          sector: stock.sic_description ?? null,
+          logo_url: stock.logo_url ?? null,
+          sector: stock.sector ?? null,
           status,
-          session_id: sessionId,
+          session_id: getSessionId(),
         }),
       });
 
@@ -231,8 +215,15 @@ export default function StockDetailPage({
     }
   };
 
-  const logoSrc = `/api/stocks/${encodeURIComponent(ticker)}/logo`;
-  const previousClose = stock?.previousClose?.c;
+  const priceChange = stock?.changes;
+  const priceChangeClass =
+    typeof priceChange === 'number'
+      ? priceChange > 0
+        ? 'text-emerald-400'
+        : priceChange < 0
+          ? 'text-red-400'
+          : 'text-[var(--text-primary)]'
+      : 'text-[var(--text-primary)]';
 
   return (
     <>
@@ -260,13 +251,13 @@ export default function StockDetailPage({
           <article className="rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow)]">
             <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-start">
               <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-[var(--brand-navy-hover)]">
-                {!logoFailed ? (
+                {stock.logo_url && !logoError ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={logoSrc}
+                    src={stock.logo_url}
                     alt={`${stock.name} logo`}
                     className="h-16 w-16 object-contain"
-                    onError={() => setLogoFailed(true)}
+                    onError={() => setLogoError(true)}
                   />
                 ) : (
                   <span className="text-lg font-bold text-white">
@@ -284,21 +275,29 @@ export default function StockDetailPage({
                 <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                   <div>
                     <dt className="font-semibold text-[var(--text-muted)]">Sector</dt>
-                    <dd className="text-[var(--text-primary)]">—</dd>
+                    <dd className="text-[var(--text-primary)]">
+                      {stock.sector ?? '—'}
+                    </dd>
                   </div>
                   <div>
                     <dt className="font-semibold text-[var(--text-muted)]">Industry</dt>
                     <dd className="text-[var(--text-primary)]">
-                      {stock.sic_description ?? '—'}
+                      {stock.industry ?? '—'}
                     </dd>
                   </div>
                   <div>
-                    <dt className="font-semibold text-[var(--text-muted)]">
-                      Previous close
-                    </dt>
+                    <dt className="font-semibold text-[var(--text-muted)]">Price</dt>
                     <dd className="text-[var(--text-primary)]">
-                      {typeof previousClose === 'number'
-                        ? formatCurrency(previousClose)
+                      {typeof stock.price === 'number'
+                        ? formatCurrency(stock.price)
+                        : '—'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold text-[var(--text-muted)]">Change</dt>
+                    <dd className={priceChangeClass}>
+                      {typeof priceChange === 'number'
+                        ? formatPriceChange(priceChange)
                         : '—'}
                     </dd>
                   </div>
@@ -313,16 +312,7 @@ export default function StockDetailPage({
                   <div>
                     <dt className="font-semibold text-[var(--text-muted)]">Exchange</dt>
                     <dd className="text-[var(--text-primary)]">
-                      {stock.primary_exchange
-                        ? formatExchange(stock.primary_exchange)
-                        : '—'}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="font-semibold text-[var(--text-muted)]">Market type</dt>
-                    <dd className="capitalize text-[var(--text-primary)]">
-                      {stock.market ?? '—'}
-                      {stock.type ? ` · ${stock.type}` : ''}
+                      {stock.exchange ?? '—'}
                     </dd>
                   </div>
                 </dl>

@@ -10,17 +10,17 @@ const linkStyle = {
   textUnderlineOffset: '2px',
 };
 
-export function MassiveAttribution() {
+export function FmpAttribution() {
   return (
     <span style={wrapperStyle}>
       Market data provided by{' '}
       <a
-        href="https://polygon.io"
+        href="https://financialmodelingprep.com"
         target="_blank"
         rel="noopener noreferrer"
         style={linkStyle}
       >
-        Massive
+        Financial Modeling Prep
       </a>
     </span>
   );

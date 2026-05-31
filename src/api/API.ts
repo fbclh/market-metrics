@@ -8,13 +8,9 @@ import {
 export type StockResult = {
   ticker: string;
   name: string;
-  market: string;
-  locale: string;
-  primary_exchange: string;
-  type: string;
-  active: boolean;
-  logo_url?: string;
-  description?: string;
+  sector: string | null;
+  exchange: string;
+  logo_url: string;
 };
 
 export type SearchStocksParams = {
@@ -28,69 +24,21 @@ export type SearchStocksResponse = {
   nextCursor?: string;
 };
 
-type MassiveTicker = {
-  ticker: string;
-  name: string;
-  market: string;
-  locale: string;
-  primary_exchange: string;
-  type: string;
-  active: boolean;
-  logo_url?: string | null;
-  branding?: {
-    logo_url?: string;
-    icon_url?: string;
-  };
-};
-
-type MassiveTickersResponse = {
-  results?: MassiveTicker[];
-  count?: number;
-  next_url?: string;
+type StocksApiResponse = {
+  results?: StockResult[];
+  total?: number;
   status?: string;
   message?: string;
   error?: string;
 };
 
-function parseCursor(nextUrl?: string): string | undefined {
-  if (!nextUrl) {
-    return undefined;
-  }
-
-  try {
-    return new URL(nextUrl).searchParams.get('cursor') ?? undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-function mapTicker(ticker: MassiveTicker): StockResult {
-  const logoUrl = ticker.logo_url?.trim() || undefined;
-
-  return {
-    ticker: ticker.ticker,
-    name: ticker.name,
-    market: ticker.market,
-    locale: ticker.locale,
-    primary_exchange: ticker.primary_exchange,
-    type: ticker.type,
-    active: ticker.active,
-    logo_url: logoUrl,
-  };
-}
-
 export async function searchStocks({
   query,
-  cursor,
 }: SearchStocksParams = {}): Promise<SearchStocksResponse> {
   const params = new URLSearchParams();
 
   if (query?.trim()) {
     params.set('search', query.trim());
-  }
-
-  if (cursor) {
-    params.set('cursor', cursor);
   }
 
   const queryString = params.toString();
@@ -99,9 +47,9 @@ export async function searchStocks({
     { cache: 'no-store' },
   );
 
-  let data: MassiveTickersResponse;
+  let data: StocksApiResponse;
   try {
-    data = (await response.json()) as MassiveTickersResponse;
+    data = (await response.json()) as StocksApiResponse;
   } catch {
     throw new Error(
       isRateLimitStatus(response.status)
@@ -126,9 +74,10 @@ export async function searchStocks({
     );
   }
 
+  const results = data.results ?? [];
+
   return {
-    results: (data.results ?? []).map(mapTicker),
-    total: data.count ?? data.results?.length ?? 0,
-    nextCursor: parseCursor(data.next_url),
+    results,
+    total: data.total ?? results.length,
   };
 }

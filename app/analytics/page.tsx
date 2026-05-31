@@ -9,6 +9,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -23,6 +24,8 @@ import {
   defaultWatchlistStats,
   type SearchVolumeItem,
   type SearchVolumeResponse,
+  type SectorBreakdownResponse,
+  type SectorItem,
   type TopAssetItem,
   type TopAssetsResponse,
   type TopSearchItem,
@@ -92,6 +95,7 @@ export default function AnalyticsPage() {
   const [trending, setTrending] = useState<TrendingItem[]>([]);
   const [watchlistStats, setWatchlistStats] =
     useState<WatchlistStats>(defaultWatchlistStats);
+  const [sectorBreakdown, setSectorBreakdown] = useState<SectorItem[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,6 +109,7 @@ export default function AnalyticsPage() {
         assetsResult,
         trendingResult,
         statsResult,
+        sectorResult,
       ] = await Promise.all([
         fetchAnalytics<SearchVolumeResponse>('/api/analytics/search-volume'),
         fetchAnalytics<TopSearchesResponse>('/api/analytics/top-searches'),
@@ -112,6 +117,9 @@ export default function AnalyticsPage() {
         fetchAnalytics<TrendingResponse>('/api/analytics/trending'),
         fetchAnalytics<WatchlistStatsResponse>(
           '/api/analytics/watchlist-stats',
+        ),
+        fetchAnalytics<SectorBreakdownResponse>(
+          '/api/analytics/sector-breakdown',
         ),
       ]);
 
@@ -122,6 +130,7 @@ export default function AnalyticsPage() {
       setTopAssets(assetsResult?.data ?? []);
       setTrending(trendingResult?.data ?? []);
       setWatchlistStats(statsResult?.data ?? defaultWatchlistStats);
+      setSectorBreakdown(sectorResult?.data ?? []);
       setLoading(false);
     }
 
@@ -217,8 +226,8 @@ export default function AnalyticsPage() {
                   <XAxis type="number" allowDecimals={false} {...chartAxisStyle} />
                   <YAxis
                     type="category"
-                    dataKey="query"
-                    width={100}
+                    dataKey="name"
+                    width={120}
                     {...chartAxisStyle}
                   />
                   <Tooltip {...chartTooltipStyle} />
@@ -239,7 +248,9 @@ export default function AnalyticsPage() {
                   <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
                   <XAxis
                     dataKey="ticker"
-                    tickFormatter={(value) => truncateLabel(String(value))}
+                    tickFormatter={(value) =>
+                      truncateLabel(String(value).toUpperCase())
+                    }
                     interval={0}
                     angle={-25}
                     textAnchor="end"
@@ -249,7 +260,7 @@ export default function AnalyticsPage() {
                   <YAxis allowDecimals={false} {...chartAxisStyle} />
                   <Tooltip
                     {...chartTooltipStyle}
-                    labelFormatter={(value) => String(value)}
+                    labelFormatter={(value) => String(value).toUpperCase()}
                   />
                   <Bar dataKey="count" fill={CHART_COLORS.emerald} radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -270,14 +281,14 @@ export default function AnalyticsPage() {
               <ol className="space-y-3">
                 {trending.map((item, index) => (
                   <li
-                    key={`${item.query}-${index}`}
+                    key={`${item.name}-${index}`}
                     className="flex items-center justify-between rounded-lg border border-white/10 bg-[#12243a] px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold text-[var(--brand-accent-light)]">
                         {index + 1}
                       </span>
-                      <span className="text-sm text-gray-300">{item.query}</span>
+                      <span className="text-sm text-gray-300">{item.name}</span>
                     </div>
                     <span className="rounded-full bg-[#0d1b2a] px-2.5 py-0.5 text-xs font-medium text-gray-300 ring-1 ring-white/10">
                       {item.count}
@@ -295,39 +306,49 @@ export default function AnalyticsPage() {
               <EmptyState />
             ) : (
               <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
+                <PieChart margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
                   <Pie
                     data={pieData}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
-                    cy="50%"
-                    innerRadius={70}
-                    outerRadius={100}
+                    cy="44%"
+                    innerRadius={66}
+                    outerRadius={90}
                     paddingAngle={2}
                   >
                     {pieData.map((entry) => (
                       <Cell key={entry.name} fill={entry.color} stroke="transparent" />
                     ))}
                   </Pie>
-                  <Tooltip {...chartTooltipStyle} />
+                  <Legend
+                    verticalAlign="bottom"
+                    align="center"
+                    iconType="circle"
+                    iconSize={10}
+                    height={44}
+                    wrapperStyle={{ paddingTop: 10 }}
+                    formatter={(value) => (
+                      <span className="text-sm text-gray-400">{value}</span>
+                    )}
+                  />
                   <text
                     x="50%"
-                    y="50%"
+                    y="44%"
                     textAnchor="middle"
                     dominantBaseline="middle"
                     fill="#ffffff"
-                    className="text-2xl font-bold"
+                    className="text-3xl font-bold"
                   >
                     {watchlistStats.total}
                   </text>
                   <text
                     x="50%"
-                    y="58%"
+                    y="50%"
                     textAnchor="middle"
                     dominantBaseline="middle"
                     fill={CHART_COLORS.label}
-                    className="text-xs"
+                    className="text-sm"
                   >
                     total
                   </text>
@@ -336,6 +357,33 @@ export default function AnalyticsPage() {
             )}
           </SectionCard>
         </div>
+
+        <SectionCard title="Watchlist by Sector" className="mt-6">
+          {loading ? (
+            <ChartSkeleton />
+          ) : sectorBreakdown.length === 0 ? (
+            <EmptyState />
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={sectorBreakdown}
+                layout="vertical"
+                margin={{ left: 20 }}
+              >
+                <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
+                <XAxis type="number" allowDecimals={false} {...chartAxisStyle} />
+                <YAxis
+                  type="category"
+                  dataKey="sector"
+                  width={120}
+                  {...chartAxisStyle}
+                />
+                <Tooltip {...chartTooltipStyle} />
+                <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </SectionCard>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { normalizeSearchQuery } from '@/lib/normalize-search-query';
 
 type SearchTelemetryBody = {
   query?: unknown;
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const query = typeof body.query === 'string' ? body.query.trim() : '';
+  const query = typeof body.query === 'string' ? normalizeSearchQuery(body.query) : '';
   const sessionId =
     typeof body.session_id === 'string' ? body.session_id.trim() : '';
 
