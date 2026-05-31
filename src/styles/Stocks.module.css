@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   width: 100%;
-  background-color: #e5e7eb;
+  background-color: var(--page-bg);
 }
 
 .ul {
@@ -23,14 +23,16 @@
   flex-direction: column;
   width: 100%;
   max-width: 190px;
-  background-color: #1a1a2e;
+  background-color: var(--surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   overflow: hidden;
-  transition: filter 0.2s ease;
+  transition: filter 0.2s ease, border-color 0.2s ease;
 }
 
 .li:hover {
-  filter: brightness(1.12);
+  filter: brightness(1.1);
+  border-color: var(--border);
 }
 
 .cardLink {
@@ -48,7 +50,7 @@
   justify-content: center;
   width: 100%;
   height: 120px;
-  background-color: #111827;
+  background-color: var(--brand-navy-hover);
 }
 
 .logo {
@@ -67,7 +69,7 @@
   font-size: 1rem;
   font-weight: 700;
   color: #fff;
-  background-color: #374151;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .caption {
@@ -82,14 +84,14 @@
   margin: 0;
   font-size: 1.125rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   line-height: 1.2;
 }
 
 .name {
   margin: 0;
   font-size: 0.8125rem;
-  color: #9ca3af;
+  color: var(--text-secondary);
   line-height: 1.35;
   word-break: break-word;
 }
@@ -102,8 +104,8 @@
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: #e5e7eb;
-  background-color: #374151;
+  color: var(--text-secondary);
+  background-color: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
 }
 
@@ -118,7 +120,7 @@
   padding: 0.875rem 1.75rem;
   border: none;
   border-radius: 4px;
-  background-color: #e60012;
+  background-color: var(--nav-accent);
   color: #fff;
   font-family: system-ui, sans-serif;
   font-size: 1rem;
@@ -128,7 +130,7 @@
 }
 
 .loadMore:hover:not(:disabled) {
-  background-color: #bf0010;
+  background-color: var(--brand-blue-hover);
 }
 
 .loadMore:disabled {

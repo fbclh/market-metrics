@@ -36,10 +36,10 @@ export const CHART_COLORS = {
   indigo: '#6366f1',
   emerald: '#10b981',
   amber: '#f59e0b',
-  label: '#6b7280',
-  grid: '#e5e7eb',
-  tooltipBg: '#ffffff',
-  tooltipBorder: '#e5e7eb',
+  label: '#94a3b8',
+  grid: 'rgba(255, 255, 255, 0.08)',
+  tooltipBg: '#0f3258',
+  tooltipBorder: 'rgba(255, 255, 255, 0.12)',
 } as const;
 
 export const chartTooltipStyle = {
@@ -47,10 +47,10 @@ export const chartTooltipStyle = {
     backgroundColor: CHART_COLORS.tooltipBg,
     border: `1px solid ${CHART_COLORS.tooltipBorder}`,
     borderRadius: '8px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4)',
   },
-  labelStyle: { color: '#374151', fontWeight: 600 },
-  itemStyle: { color: '#1f2937' },
+  labelStyle: { color: '#e8eef4', fontWeight: 600 },
+  itemStyle: { color: '#94a3b8' },
 };
 
 export const chartAxisStyle = {

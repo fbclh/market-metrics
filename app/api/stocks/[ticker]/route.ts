@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  isRateLimitStatus,
+  rateLimitJsonResponse,
+} from '@/lib/api-errors';
 
 type RouteContext = {
   params: { ticker: string };
@@ -46,18 +50,25 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
     const prevData = await prevResponse.json();
 
     if (!tickerResponse.ok) {
+      if (isRateLimitStatus(tickerResponse.status)) {
+        return NextResponse.json(rateLimitJsonResponse(), { status: 429 });
+      }
       return NextResponse.json(tickerData, { status: tickerResponse.status });
     }
 
-    if (!prevResponse.ok) {
-      return NextResponse.json(prevData, { status: prevResponse.status });
-    }
-
     const tickerDetails = tickerData.results ?? {};
-    const aggResults = Array.isArray(prevData.results) ? prevData.results : [];
+    const aggResults =
+      prevResponse.ok && Array.isArray(prevData.results) ? prevData.results : [];
+    const hasLogo =
+      Boolean(tickerDetails.branding?.logo_url) ||
+      Boolean(tickerDetails.branding?.icon_url);
 
     return NextResponse.json({
       ...tickerDetails,
+      branding: tickerDetails.branding ?? null,
+      logo_url: hasLogo
+        ? `/api/stocks/${encodeURIComponent(ticker)}/logo`
+        : null,
       previousClose: aggResults[0] ?? null,
     });
   } catch (error) {

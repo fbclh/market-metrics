@@ -11,6 +11,29 @@ type SearchFormProps = {
   onSubmit?: (query: string) => void;
 };
 
+function SearchIcon() {
+  return (
+    <svg
+      className={styles.searchIcon}
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M9 3.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+      <path
+        d="m14 14 3.5 3.5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function SearchForm({ value, onChange, onSubmit }: SearchFormProps) {
   const router = useRouter();
   const [internalValue, setInternalValue] = useState('');
@@ -49,13 +72,17 @@ export function SearchForm({ value, onChange, onSubmit }: SearchFormProps) {
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
-      <input
-        className={styles.input}
-        type="text"
-        placeholder="Search stocks, ETFs..."
-        value={inputValue}
-        onChange={(event) => handleChange(event.target.value)}
-      />
+      <div className={styles.searchWrap}>
+        <SearchIcon />
+        <input
+          className={styles.input}
+          type="search"
+          placeholder="Search stocks, ETFs..."
+          value={inputValue}
+          onChange={(event) => handleChange(event.target.value)}
+          aria-label="Search stocks"
+        />
+      </div>
     </form>
   );
 }

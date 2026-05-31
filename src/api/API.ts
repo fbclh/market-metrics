@@ -1,3 +1,10 @@
+import {
+  API_RATE_LIMIT_MESSAGE,
+  getApiErrorMessage,
+  isRateLimitPayload,
+  isRateLimitStatus,
+} from '@/lib/api-errors';
+
 export type StockResult = {
   ticker: string;
   name: string;
@@ -29,6 +36,11 @@ type MassiveTicker = {
   primary_exchange: string;
   type: string;
   active: boolean;
+  logo_url?: string | null;
+  branding?: {
+    logo_url?: string;
+    icon_url?: string;
+  };
 };
 
 type MassiveTickersResponse = {
@@ -37,6 +49,7 @@ type MassiveTickersResponse = {
   next_url?: string;
   status?: string;
   message?: string;
+  error?: string;
 };
 
 function parseCursor(nextUrl?: string): string | undefined {
@@ -52,6 +65,8 @@ function parseCursor(nextUrl?: string): string | undefined {
 }
 
 function mapTicker(ticker: MassiveTicker): StockResult {
+  const logoUrl = ticker.logo_url?.trim() || undefined;
+
   return {
     ticker: ticker.ticker,
     name: ticker.name,
@@ -60,6 +75,7 @@ function mapTicker(ticker: MassiveTicker): StockResult {
     primary_exchange: ticker.primary_exchange,
     type: ticker.type,
     active: ticker.active,
+    logo_url: logoUrl,
   };
 }
 
@@ -80,13 +96,34 @@ export async function searchStocks({
   const queryString = params.toString();
   const response = await fetch(
     queryString ? `/api/stocks?${queryString}` : '/api/stocks',
+    { cache: 'no-store' },
   );
-  const data = (await response.json()) as MassiveTickersResponse;
+
+  let data: MassiveTickersResponse;
+  try {
+    data = (await response.json()) as MassiveTickersResponse;
+  } catch {
+    throw new Error(
+      isRateLimitStatus(response.status)
+        ? API_RATE_LIMIT_MESSAGE
+        : getApiErrorMessage(response.status, null, 'Failed to load stocks.'),
+    );
+  }
+
+  if (isRateLimitStatus(response.status) || isRateLimitPayload(data)) {
+    throw new Error(API_RATE_LIMIT_MESSAGE);
+  }
 
   if (!response.ok) {
-    const message =
-      data.message || data.status || 'Failed to load stocks.';
-    throw new Error(message);
+    throw new Error(
+      getApiErrorMessage(response.status, data, 'Failed to load stocks.'),
+    );
+  }
+
+  if (data.status === 'ERROR' && !(data.results?.length ?? 0)) {
+    throw new Error(
+      getApiErrorMessage(response.status, data, 'Failed to load stocks.'),
+    );
   }
 
   return {

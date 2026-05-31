@@ -3,16 +3,40 @@
 }
 
 :root {
-  --red: hsla(0, 85%, 56%, 0.95);
-  --black: hsl(0, 0%, 15%);
-  --white: hsl(0, 0%, 96%);
-  --nav-red: #e60012;
-  --page-bg: #e5e7eb;
-  --surface: #ffffff;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --border: #e5e7eb;
+  --brand-navy: #0b2948;
+  --brand-navy-hover: #081e36;
+  --brand-blue: #005a9c;
+  --brand-blue-hover: #004680;
+  --brand-accent-light: #9fd4ff;
+  --nav-bg: #060e18;
+  --nav-accent: var(--brand-blue);
+  --error: hsla(0, 85%, 65%, 0.95);
+  --page-bg: #060e18;
+  --surface: #0b2948;
+  --surface-raised: #0f3258;
+  --surface-hover: #122f52;
+  --surface-muted: #081e36;
+  --text-primary: #e8eef4;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-border: rgba(255, 255, 255, 0.12);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
   --cards-grid-width: calc(190px * 5 + 1.25rem * 4);
+  --header-offset: 6.75rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-offset: 4.5rem;
+  }
+}
+
+html {
+  color-scheme: dark;
+  background-color: var(--page-bg);
 }
 
 body {
@@ -21,14 +45,14 @@ body {
 }
 
 .status {
-  color: var(--black);
+  color: var(--text-secondary);
   text-align: center;
   margin: 2rem 1rem;
   font-family: system-ui, sans-serif;
 }
 
 .status--error {
-  color: var(--red);
+  color: var(--error);
   max-width: 40rem;
   margin-left: auto;
   margin-right: auto;

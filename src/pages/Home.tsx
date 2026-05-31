@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { getSessionId } from '@/lib/session';
+import { resolveStockLoadError } from '@/lib/api-errors';
 import { searchStocks, type StockResult } from '../api/API';
 import { Stocks } from '../components/Stocks';
 import { Header } from '../components/Header';
@@ -45,9 +46,7 @@ export const Home = () => {
           setNextCursor(undefined);
         }
 
-        const message =
-          err instanceof Error ? err.message : 'Failed to load stocks.';
-        setError(message);
+        setError(resolveStockLoadError(err));
       } finally {
         if (append) {
           setLoadingMore(false);
@@ -110,35 +109,38 @@ export const Home = () => {
         handleOnChange={handleOnChange}
         handleSubmit={handleSubmit}
       />
-      {loading && stocks.length === 0 && (
-        <p className="status">
-          {activeSearch
-            ? `Searching for “${activeSearch}”…`
-            : 'Loading stocks…'}
-        </p>
-      )}
-      {error && (
-        <p className="status status--error" role="alert">
-          {error}
-        </p>
-      )}
-      {!loading && !error && stocks.length === 0 && (
-        <p className="status">
-          {activeSearch
-            ? `No stocks found for “${activeSearch}”.`
-            : 'No stocks found.'}
-        </p>
-      )}
-      {!error && stocks.length > 0 && (
-        <div className={styles.layout}>
+      <div className={styles.layout}>
+        {loading && stocks.length === 0 && (
+          <p className="status">
+            {activeSearch
+              ? `Searching for “${activeSearch}”…`
+              : 'Loading stocks…'}
+          </p>
+        )}
+        {error && (
+          <p
+            className={`status status--error ${styles.message}`}
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
+        {!loading && !error && stocks.length === 0 && (
+          <p className={`status ${styles.message}`}>
+            {activeSearch
+              ? `No stocks found for “${activeSearch}”.`
+              : 'No stocks found.'}
+          </p>
+        )}
+        {!error && stocks.length > 0 && (
           <Stocks
             stocks={stocks}
             hasMore={Boolean(nextCursor)}
             loadingMore={loadingMore}
             onLoadMore={handleLoadMore}
           />
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 };

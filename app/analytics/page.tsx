@@ -41,7 +41,7 @@ function truncateLabel(value: string, max = 12): string {
 function ChartSkeleton({ height = 300 }: { height?: number }) {
   return (
     <div
-      className="animate-pulse rounded-lg bg-gray-200"
+      className="animate-pulse rounded-lg bg-[var(--surface-hover)]"
       style={{ height }}
     />
   );
@@ -49,7 +49,7 @@ function ChartSkeleton({ height = 300 }: { height?: number }) {
 
 function EmptyState() {
   return (
-    <div className="flex h-[300px] items-center justify-center text-sm text-gray-500">
+    <div className="flex h-[300px] items-center justify-center text-sm text-[var(--text-muted)]">
       No data yet
     </div>
   );
@@ -66,9 +66,9 @@ function SectionCard({
 }) {
   return (
     <section
-      className={`rounded-xl border border-gray-200 bg-white p-5 shadow-sm ${className}`}
+      className={`rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)] ${className}`}
     >
-      <h2 className="mb-4 text-lg font-semibold text-gray-900">{title}</h2>
+      <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
       {children}
     </section>
   );
@@ -144,22 +144,22 @@ export default function AnalyticsPage() {
   ].filter((item) => item.value > 0);
 
   return (
-    <div className="min-h-screen bg-[#e5e7eb] text-gray-900">
+    <div className="min-h-screen bg-[var(--page-bg)] text-[var(--text-primary)]">
       <SubpageHeader />
       <div className="mx-auto max-w-7xl px-4 py-8 pb-12 md:px-6">
         <Link
           href="/"
-          className="mb-6 inline-flex items-center gap-2 text-sm text-gray-600 transition hover:text-gray-900"
+          className="mb-6 inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] transition hover:text-[var(--text-primary)]"
         >
           <span aria-hidden="true">←</span>
           Back to Market
         </Link>
 
         <header className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] md:text-3xl">
             Analytics Dashboard
           </h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-[var(--text-secondary)]">
             Real usage data from searches, game views, and play lists.
           </p>
         </header>
@@ -254,7 +254,7 @@ export default function AnalyticsPage() {
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, index) => (
-                  <div key={index} className="h-8 animate-pulse rounded bg-gray-200" />
+                  <div key={index} className="h-8 animate-pulse rounded bg-[var(--surface-hover)]" />
                 ))}
               </div>
             ) : trending.length === 0 ? (
@@ -264,15 +264,15 @@ export default function AnalyticsPage() {
                 {trending.map((item, index) => (
                   <li
                     key={`${item.query}-${index}`}
-                    className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3"
+                    className="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-hover)] px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-[#e60012]">
+                      <span className="text-sm font-semibold text-[var(--brand-accent-light)]">
                         {index + 1}
                       </span>
-                      <span className="text-sm text-gray-800">{item.query}</span>
+                      <span className="text-sm text-[var(--text-secondary)]">{item.query}</span>
                     </div>
-                    <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 shadow-sm ring-1 ring-gray-200">
+                    <span className="rounded-full bg-[var(--surface)] px-2.5 py-0.5 text-xs font-medium text-[var(--text-secondary)] ring-1 ring-[var(--border)]">
                       {item.count}
                     </span>
                   </li>
@@ -309,7 +309,7 @@ export default function AnalyticsPage() {
                     y="50%"
                     textAnchor="middle"
                     dominantBaseline="middle"
-                    fill="#1f2937"
+                    fill="#e8eef4"
                     className="text-2xl font-bold"
                   >
                     {listStats.total}

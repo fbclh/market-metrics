@@ -17,12 +17,12 @@ function WatchlistSkeleton() {
       {Array.from({ length: 3 }).map((_, index) => (
         <div
           key={index}
-          className="animate-pulse rounded-xl border border-gray-200 bg-white p-4"
+          className="animate-pulse rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4"
         >
-          <div className="mb-3 h-5 w-16 rounded bg-gray-200" />
-          <div className="mb-2 h-4 w-3/4 rounded bg-gray-200" />
-          <div className="mb-4 h-3 w-1/2 rounded bg-gray-200" />
-          <div className="h-8 w-full rounded bg-gray-200" />
+          <div className="mb-3 h-5 w-16 rounded bg-[var(--surface-hover)]" />
+          <div className="mb-2 h-4 w-3/4 rounded bg-[var(--surface-hover)]" />
+          <div className="mb-4 h-3 w-1/2 rounded bg-[var(--surface-hover)]" />
+          <div className="h-8 w-full rounded bg-[var(--surface-hover)]" />
         </div>
       ))}
     </div>
@@ -136,8 +136,9 @@ export default function WatchlistPage() {
   return (
     <>
       <SubpageHeader />
+      <div className="min-h-screen bg-[var(--page-bg)] text-[var(--text-primary)]">
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold text-gray-900">Watchlist</h1>
+        <h1 className="mb-6 text-2xl font-bold text-[var(--text-primary)]">Watchlist</h1>
 
         <div className="mb-6 flex flex-wrap gap-2">
           {WATCHLIST_TABS.map((tab) => (
@@ -147,8 +148,8 @@ export default function WatchlistPage() {
               onClick={() => setActiveTab(tab.status)}
               className={
                 activeTab === tab.status
-                  ? 'rounded-md bg-[#e60012] px-4 py-2 text-sm font-semibold text-white'
-                  : 'rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50'
+                  ? 'rounded-md bg-[var(--brand-blue)] px-4 py-2 text-sm font-semibold text-white'
+                  : 'rounded-md border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary)] transition hover:bg-[var(--surface-hover)]'
               }
             >
               {tab.label}
@@ -157,7 +158,7 @@ export default function WatchlistPage() {
         </div>
 
         {error && (
-          <p className="mb-4 text-sm text-red-600" role="alert">
+          <p className="mb-4 text-sm text-[var(--error)]" role="alert">
             {error}
           </p>
         )}
@@ -165,13 +166,13 @@ export default function WatchlistPage() {
         {loading ? (
           <WatchlistSkeleton />
         ) : filteredItems.length === 0 ? (
-          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-            <p className="text-sm text-gray-600">
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-8 text-center shadow-[var(--shadow)]">
+            <p className="text-sm text-[var(--text-secondary)]">
               No stocks in {WATCHLIST_STATUS_LABELS[activeTab]} yet.
             </p>
             <Link
               href="/"
-              className="mt-4 inline-block text-sm font-semibold text-[#e60012] transition hover:text-[#bf0010]"
+              className="mt-4 inline-block text-sm font-semibold text-[var(--brand-accent-light)] transition hover:text-white"
             >
               Discover stocks →
             </Link>
@@ -181,19 +182,19 @@ export default function WatchlistPage() {
             {filteredItems.map((item) => (
               <li
                 key={item.id}
-                className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+                className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow)]"
               >
                 <Link
                   href={`/stocks/${encodeURIComponent(item.ticker)}`}
                   className="block no-underline"
                 >
-                  <p className="text-lg font-bold text-gray-900">{item.ticker}</p>
-                  <p className="mt-1 text-sm text-gray-700">{item.company_name}</p>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="text-lg font-bold text-[var(--text-primary)]">{item.ticker}</p>
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">{item.company_name}</p>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">
                     {item.sector ?? '—'}
                   </p>
                 </Link>
-                <span className="mt-3 inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                <span className="mt-3 inline-flex rounded-full bg-[rgba(255,255,255,0.08)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)]">
                   {WATCHLIST_STATUS_LABELS[item.status]}
                 </span>
 
@@ -207,7 +208,7 @@ export default function WatchlistPage() {
                         event.target.value as WatchlistStatus,
                       )
                     }
-                    className="rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700"
+                    className="rounded-md border border-[var(--border)] bg-[var(--surface-raised)] px-3 py-2 text-sm text-[var(--text-secondary)]"
                   >
                     {WATCHLIST_TABS.map((tab) => (
                       <option key={tab.status} value={tab.status}>
@@ -222,14 +223,14 @@ export default function WatchlistPage() {
                         type="button"
                         disabled={pendingTicker === item.ticker}
                         onClick={() => handleRemove(item.ticker)}
-                        className="flex-1 rounded-md bg-[#e60012] px-3 py-2 text-sm font-semibold text-white"
+                        className="flex-1 rounded-md bg-[var(--brand-blue)] px-3 py-2 text-sm font-semibold text-white"
                       >
                         Confirm remove
                       </button>
                       <button
                         type="button"
                         onClick={() => setConfirmRemoveTicker(null)}
-                        className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700"
+                        className="flex-1 rounded-md border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--text-secondary)]"
                       >
                         Cancel
                       </button>
@@ -239,7 +240,7 @@ export default function WatchlistPage() {
                       type="button"
                       disabled={pendingTicker === item.ticker}
                       onClick={() => setConfirmRemoveTicker(item.ticker)}
-                      className="rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                      className="rounded-md border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--text-secondary)] transition hover:bg-[var(--surface-hover)]"
                     >
                       Remove
                     </button>
@@ -249,6 +250,7 @@ export default function WatchlistPage() {
             ))}
           </ul>
         )}
+      </div>
       </div>
     </>
   );

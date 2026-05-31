@@ -1,4 +1,5 @@
 import { MassiveAttribution } from './massive-attribution';
+import { Logo } from './Logo';
 
 const layoutStyle = {
   minHeight: '100vh',
@@ -17,13 +18,13 @@ const footerStyle = {
   alignItems: 'center',
   padding: '0.75rem 1.5rem',
   marginTop: 'auto',
-  backgroundColor: '#bf0010',
-  borderTop: 'none',
+  backgroundColor: 'var(--nav-bg)',
+  borderTop: '1px solid var(--border-subtle)',
 };
 
-const brandStyle = {
-  fontSize: '0.75rem',
-  color: '#fff',
+const footerBrandStyle = {
+  transform: 'scale(0.82)',
+  transformOrigin: 'right center' as const,
 };
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -32,7 +33,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <main style={mainStyle}>{children}</main>
       <footer style={footerStyle}>
         <MassiveAttribution />
-        <span style={brandStyle}>MarketMetrics</span>
+        <div style={footerBrandStyle}>
+          <Logo href="/" />
+        </div>
       </footer>
     </div>
   );

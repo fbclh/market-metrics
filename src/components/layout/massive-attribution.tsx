@@ -5,7 +5,7 @@ const wrapperStyle = {
 };
 
 const linkStyle = {
-  color: '#fecaca',
+  color: 'var(--brand-accent-light)',
   textDecoration: 'underline',
   textUnderlineOffset: '2px',
 };

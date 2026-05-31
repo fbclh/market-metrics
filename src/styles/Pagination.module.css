@@ -12,7 +12,7 @@
   padding: 0.875rem 1.75rem;
   border: none;
   border-radius: 0;
-  background-color: var(--nav-red);
+  background-color: var(--nav-accent);
   color: #fff;
   font-family: system-ui, sans-serif;
   font-size: 1rem;
@@ -23,7 +23,7 @@
 }
 
 .button:hover:not(:disabled) {
-  background-color: #cc0010;
+  background-color: var(--brand-blue-hover);
 }
 
 .button:disabled {
@@ -55,17 +55,18 @@
 }
 
 .pageNumber {
-  background-color: #fff;
-  color: var(--nav-red);
+  background-color: var(--surface);
+  color: var(--brand-accent-light);
+  border: 1px solid var(--border-subtle);
 }
 
 .pageNumber:hover:not(:disabled) {
-  background-color: var(--nav-red);
+  background-color: var(--nav-accent);
   color: #fff;
 }
 
 .pageActive {
-  background-color: var(--nav-red);
+  background-color: var(--nav-accent);
   color: #fff;
   cursor: default;
 }
