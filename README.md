@@ -1,20 +1,22 @@
-# GameMetrics
+# MarketMetrics
 
-A game discovery and behavioral analytics platform built to demonstrate
-data engineering, telemetry pipelines, and full-stack development skills.
+A stock research and behavioral analytics platform built to demonstrate
+data engineering, telemetry pipelines, and AI integration skills.
 
 ## Live Demo
 
-[game-metrics.vercel.app](https://game-metrics.vercel.app/)
+[link — add after Vercel deploy]
 
 ## Features
 
-- Game discovery powered by RAWG API (500,000+ games)
+- Stock discovery powered by Financial Modeling Prep (FMP) API
+- Dow Jones default view with most active stocks fallback
 - Anonymous session tracking — no login required
 - Search and view telemetry logged to Supabase Postgres
-- Play list with Want to Play / Playing / Finished statuses
+- Portfolio tracker with Watching / Researching / Invested statuses
 - Analytics dashboard with real usage data (Recharts)
-- Smart game recommendations based on library
+- AI stock recommendations powered by Cohere
+- Watchlist by sector breakdown (GICS sectors)
 - Keep-alive cron to maintain Supabase free tier
 
 ## Tech Stack
@@ -23,7 +25,8 @@ data engineering, telemetry pipelines, and full-stack development skills.
 - Tailwind CSS
 - Supabase (Postgres)
 - Recharts
-- RAWG REST API
+- Financial Modeling Prep (FMP) API
+- Cohere AI API
 - Vercel
 
 ## Setup
@@ -33,10 +36,19 @@ data engineering, telemetry pipelines, and full-stack development skills.
 3. Run the SQL in `lib/supabase.ts` in your Supabase SQL editor
 4. `npm install && npm run dev`
 
-## Attribution
+## Environment Variables
 
-Data provided by [RAWG](https://rawg.io)
+```
+FMP_API_KEY=your_fmp_api_key
+COHERE_API_KEY=your_cohere_trial_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_legacy_jwt_anon_key
+```
 
 ## Author
 
 Fabio C.
+
+## Attribution
+
+Market data provided by [Financial Modeling Prep](https://financialmodelingprep.com)

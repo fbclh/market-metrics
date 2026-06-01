@@ -1,122 +1,65 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import type { PlayListStatus } from '@/types/playlist';
+import { WATCHLIST_STATUS_LABELS, type WatchlistStatus } from '@/types/watchlist';
 
 type RecommendationsBody = {
   session_id?: unknown;
 };
 
-type PlaylistRow = {
-  game_name: string;
-  status: PlayListStatus;
+type WatchlistRow = {
+  ticker: string;
+  company_name: string;
+  sector: string | null;
+  status: WatchlistStatus;
 };
 
 type Recommendation = {
+  ticker: string;
   name: string;
   reason: string;
 };
 
-const GENRE_RECOMMENDATIONS: Record<string, string[]> = {
-  zelda: ['Okami', 'Tunic', 'Hyper Light Drifter'],
-  mario: ['Kirby and the Forgotten Land', 'Rayman Legends', "Yoshi's Crafted World"],
-  metroid: ['Hollow Knight', 'Ori and the Blind Forest', 'Axiom Verge'],
-  pokemon: ['Cassette Beasts', 'Temtem', 'Coromon'],
-  halo: ['Destiny 2', 'Titanfall 2', 'Splitgate'],
-  fifa: ['Rocket League', 'Mario Strikers', 'Captain Tsubasa'],
-};
-
-const DEFAULT_RECOMMENDATIONS = ['Hollow Knight', 'Celeste', 'Hades'];
-
-const REASON_TEMPLATES: Record<string, string> = {
-  zelda:
-    'If you enjoyed {game}, you will appreciate the exploration and puzzle-driven adventure here.',
-  mario:
-    'Since {game} is in your library, this platformer matches that same playful, polished style.',
-  metroid:
-    'Your taste for {game} points toward this action-exploration game with tight movement and discovery.',
-  pokemon:
-    'With {game} on your list, this creature-collection RPG should feel like a natural next step.',
-  halo: 'Given {game} in your library, this sci-fi shooter delivers similar fast-paced combat.',
-  fifa: 'Because you have {game}, this competitive sports title fits your library well.',
-  default:
-    'Based on titles like {game} in your library, this acclaimed game is a strong match for you.',
-};
-
-function normalizeName(name: string): string {
-  return name.trim().toLowerCase();
+function formatStockLine(stock: WatchlistRow): string {
+  const sector = stock.sector?.trim() || 'Unknown sector';
+  const status = WATCHLIST_STATUS_LABELS[stock.status];
+  return `${stock.ticker} - ${stock.company_name} (${sector}) - ${status}`;
 }
 
-function isInLibrary(candidate: string, libraryNames: Set<string>): boolean {
-  const normalized = normalizeName(candidate);
-  for (const name of Array.from(libraryNames)) {
-    if (name === normalized || name.includes(normalized) || normalized.includes(name)) {
-      return true;
-    }
-  }
-  return false;
+function buildPrompt(stocks: WatchlistRow[]): string {
+  const stockLines = stocks.map(formatStockLine).join('\n');
+
+  return `The user has these stocks in their portfolio:
+${stockLines}
+Based on their investment interests and sectors, recommend 3 stocks they might want to research next.
+For each recommendation provide: ticker, name, reason (2 sentences max).
+Respond only with a JSON array, no markdown, no backticks:
+[{ "ticker": string, "name": string, "reason": string }]`;
 }
 
-function findMatchingFranchise(gameName: string): string | null {
-  const lower = gameName.toLowerCase();
-  for (const franchise of Object.keys(GENRE_RECOMMENDATIONS)) {
-    if (lower.includes(franchise)) {
-      return franchise;
-    }
-  }
-  return null;
-}
+function parseRecommendations(text: string): Recommendation[] {
+  const parsed = JSON.parse(text) as unknown;
 
-function buildRecommendations(playlist: PlaylistRow[]): Recommendation[] {
-  const libraryNames = new Set(playlist.map((game) => normalizeName(game.game_name)));
-  const franchiseToSourceGame = new Map<string, string>();
-
-  for (const game of playlist) {
-    const franchise = findMatchingFranchise(game.game_name);
-    if (franchise && !franchiseToSourceGame.has(franchise)) {
-      franchiseToSourceGame.set(franchise, game.game_name);
-    }
+  if (!Array.isArray(parsed)) {
+    throw new Error('Cohere response was not a JSON array.');
   }
 
-  const candidates: { name: string; franchise: string; sourceGame: string }[] =
-    [];
-
-  if (franchiseToSourceGame.size > 0) {
-    for (const [franchise, sourceGame] of Array.from(franchiseToSourceGame.entries())) {
-      for (const name of GENRE_RECOMMENDATIONS[franchise]) {
-        candidates.push({ name, franchise, sourceGame });
-      }
-    }
-  } else {
-    const sourceGame = playlist[0].game_name;
-    for (const name of DEFAULT_RECOMMENDATIONS) {
-      candidates.push({ name, franchise: 'default', sourceGame });
-    }
-  }
-
-  const recommendations: Recommendation[] = [];
-  const seen = new Set<string>();
-
-  for (const candidate of candidates) {
-    const key = normalizeName(candidate.name);
-    if (seen.has(key) || isInLibrary(candidate.name, libraryNames)) {
-      continue;
+  return parsed.map((item) => {
+    if (
+      typeof item !== 'object' ||
+      item === null ||
+      typeof (item as Recommendation).ticker !== 'string' ||
+      typeof (item as Recommendation).name !== 'string' ||
+      typeof (item as Recommendation).reason !== 'string'
+    ) {
+      throw new Error('Cohere response contained invalid recommendation items.');
     }
 
-    seen.add(key);
-    const template =
-      REASON_TEMPLATES[candidate.franchise] ?? REASON_TEMPLATES.default;
-
-    recommendations.push({
-      name: candidate.name,
-      reason: template.replace('{game}', candidate.sourceGame),
-    });
-
-    if (recommendations.length >= 3) {
-      break;
-    }
-  }
-
-  return recommendations;
+    return {
+      ticker: (item as Recommendation).ticker.trim(),
+      name: (item as Recommendation).name.trim(),
+      reason: (item as Recommendation).reason.trim(),
+    };
+  });
 }
 
 export async function POST(request: Request) {
@@ -137,9 +80,9 @@ export async function POST(request: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
 
-    const { data: playlist, error: dbError } = await supabase
-      .from('play_list')
-      .select('game_name, status')
+    const { data: watchlist, error: dbError } = await supabase
+      .from('watchlist')
+      .select('ticker, company_name, sector, status')
       .eq('session_id', sessionId);
 
     if (dbError) {
@@ -149,14 +92,57 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!playlist || playlist.length === 0) {
+    if (!watchlist || watchlist.length === 0) {
       return NextResponse.json({
         recommendations: [],
-        message: 'Add some games to your list first',
+        message: 'Add some stocks to your portfolio first',
       });
     }
 
-    const recommendations = buildRecommendations(playlist as PlaylistRow[]);
+    const cohereApiKey = process.env.COHERE_API_KEY;
+    if (!cohereApiKey) {
+      return NextResponse.json(
+        { recommendations: [], error: 'COHERE_API_KEY is not configured.' },
+        { status: 500 },
+      );
+    }
+
+    const prompt = buildPrompt(watchlist as WatchlistRow[]);
+    const cohereResponse = await fetch('https://api.cohere.com/v2/chat', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${cohereApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'command-r7b-12-2024',
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    const cohereData = (await cohereResponse.json()) as {
+      message?: { content?: { text?: string }[] };
+      error?: { message?: string };
+    };
+
+    if (!cohereResponse.ok) {
+      const message =
+        cohereData.error?.message ?? 'Failed to generate recommendations.';
+      return NextResponse.json(
+        { recommendations: [], error: message },
+        { status: 500 },
+      );
+    }
+
+    const text = cohereData.message?.content?.[0]?.text;
+    if (!text) {
+      return NextResponse.json(
+        { recommendations: [], error: 'Cohere returned an empty response.' },
+        { status: 500 },
+      );
+    }
+
+    const recommendations = parseRecommendations(text);
 
     return NextResponse.json({ recommendations });
   } catch (error) {

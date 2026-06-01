@@ -11,6 +11,12 @@ import {
   type WatchlistStatus,
 } from '@/types/watchlist';
 
+type Recommendation = {
+  ticker: string;
+  name: string;
+  reason: string;
+};
+
 function WatchlistSkeleton() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -29,6 +35,24 @@ function WatchlistSkeleton() {
   );
 }
 
+function RecommendationsSkeleton() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 3 }).map((_, index) => (
+        <div
+          key={index}
+          className="animate-pulse rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] p-4"
+        >
+          <div className="mb-3 h-6 w-16 rounded bg-[var(--surface-hover)]" />
+          <div className="mb-2 h-4 w-3/4 rounded bg-[var(--surface-hover)]" />
+          <div className="mb-2 h-3 w-full rounded bg-[var(--surface-hover)]" />
+          <div className="h-3 w-5/6 rounded bg-[var(--surface-hover)]" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function WatchlistPage() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [activeTab, setActiveTab] = useState<WatchlistStatus>('watching');
@@ -38,6 +62,11 @@ export default function WatchlistPage() {
   const [confirmRemoveTicker, setConfirmRemoveTicker] = useState<string | null>(
     null,
   );
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(false);
+  const [recommendationsMessage, setRecommendationsMessage] = useState<
+    string | null
+  >(null);
 
   const loadWatchlist = useCallback(async () => {
     setLoading(true);
@@ -68,6 +97,58 @@ export default function WatchlistPage() {
   useEffect(() => {
     loadWatchlist();
   }, [loadWatchlist]);
+
+  useEffect(() => {
+    if (loading) {
+      return;
+    }
+
+    if (items.length === 0) {
+      setRecommendations([]);
+      setRecommendationsMessage(null);
+      setRecommendationsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadRecommendations() {
+      setRecommendationsLoading(true);
+      setRecommendationsMessage(null);
+
+      try {
+        const response = await fetch('/api/recommendations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: getSessionId() }),
+        });
+        const payload = await response.json();
+
+        if (cancelled) {
+          return;
+        }
+
+        setRecommendations(payload.recommendations ?? []);
+        setRecommendationsMessage(
+          typeof payload.message === 'string' ? payload.message : null,
+        );
+      } catch {
+        if (!cancelled) {
+          setRecommendations([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setRecommendationsLoading(false);
+        }
+      }
+    }
+
+    loadRecommendations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, items.length]);
 
   const filteredItems = items.filter((item) => item.status === activeTab);
 
@@ -156,6 +237,53 @@ export default function WatchlistPage() {
             </button>
           ))}
         </div>
+
+        <section className="mb-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow)]">
+          <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">
+            AI Recommendations
+          </h2>
+
+          {loading ? null : items.length === 0 ? (
+            <p className="text-sm text-[var(--text-secondary)]">
+              Add stocks to your portfolio to get AI recommendations
+            </p>
+          ) : recommendationsLoading ? (
+            <RecommendationsSkeleton />
+          ) : recommendations.length > 0 ? (
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {recommendations.map((item) => (
+                <li
+                  key={item.ticker}
+                  className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-raised)] p-4"
+                >
+                  <p className="text-xl font-bold text-[var(--text-primary)]">
+                    {item.ticker}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                    {item.name}
+                  </p>
+                  <p className="mt-3 text-sm text-[var(--text-muted)]">
+                    {item.reason}
+                  </p>
+                  <Link
+                    href={`/?search=${encodeURIComponent(item.ticker)}`}
+                    className="mt-4 inline-block text-sm font-semibold text-[var(--brand-accent-light)] transition hover:text-white"
+                  >
+                    Search for this stock →
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : recommendationsMessage ? (
+            <p className="text-sm text-[var(--text-secondary)]">
+              {recommendationsMessage}
+            </p>
+          ) : (
+            <p className="text-sm text-[var(--text-secondary)]">
+              No recommendations available right now.
+            </p>
+          )}
+        </section>
 
         {error && (
           <p className="mb-4 text-sm text-[var(--error)]" role="alert">
