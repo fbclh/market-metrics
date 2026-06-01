@@ -1,5 +1,5 @@
 export interface TopSearchItem {
-  name: string;
+  query: string;
   count: number;
 }
 
@@ -14,12 +14,12 @@ export interface SearchVolumeItem {
 }
 
 export interface TrendingItem {
-  name: string;
+  query: string;
   count: number;
 }
 
 export interface WatchlistStats {
-  watchlist: number;
+  watching: number;
   researching: number;
   invested: number;
   total: number;
@@ -65,7 +65,7 @@ export const chartAxisStyle = {
 };
 
 export const defaultWatchlistStats: WatchlistStats = {
-  watchlist: 0,
+  watching: 0,
   researching: 0,
   invested: 0,
   total: 0,

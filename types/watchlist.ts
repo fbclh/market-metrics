@@ -1,4 +1,4 @@
-export type WatchlistStatus = 'watchlist' | 'researching' | 'invested';
+export type WatchlistStatus = 'watching' | 'researching' | 'invested';
 
 export interface WatchlistItem {
   id: string;
@@ -12,7 +12,7 @@ export interface WatchlistItem {
 }
 
 const WATCHLIST_STATUSES: WatchlistStatus[] = [
-  'watchlist',
+  'watching',
   'researching',
   'invested',
 ];
@@ -25,13 +25,13 @@ export function isWatchlistStatus(value: unknown): value is WatchlistStatus {
 }
 
 export const WATCHLIST_STATUS_LABELS: Record<WatchlistStatus, string> = {
-  watchlist: 'Watchlist',
+  watching: 'Watching',
   researching: 'Researching',
   invested: 'Invested',
 };
 
 export const WATCHLIST_TABS: { status: WatchlistStatus; label: string }[] = [
-  { status: 'watchlist', label: 'Watchlist' },
+  { status: 'watching', label: 'Watching' },
   { status: 'researching', label: 'Researching' },
   { status: 'invested', label: 'Invested' },
 ];

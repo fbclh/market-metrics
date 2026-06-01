@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const FMP_BASE_URL = 'https://financialmodelingprep.com/api/v3';
+import { fetchFmpJson, fmpLogoUrl } from '@/lib/fmp';
 
 type RouteContext = {
   params: { ticker: string };
@@ -10,40 +9,16 @@ type FmpProfile = {
   symbol?: string;
   companyName?: string;
   price?: number;
-  mktCap?: number;
+  marketCap?: number;
   sector?: string;
   industry?: string;
   description?: string;
   exchange?: string;
-  logo?: string;
+  image?: string;
   website?: string;
-  beta?: number;
-  volAvg?: number;
-  changes?: number;
-  currency?: string;
+  change?: number;
+  changePercentage?: number;
 };
-
-function fmpErrorMessage(data: unknown, fallback: string): string {
-  if (
-    typeof data === 'object' &&
-    data &&
-    'Error Message' in data &&
-    typeof (data as { 'Error Message': unknown })['Error Message'] === 'string'
-  ) {
-    return (data as { 'Error Message': string })['Error Message'];
-  }
-
-  if (
-    typeof data === 'object' &&
-    data &&
-    'message' in data &&
-    typeof (data as { message: unknown }).message === 'string'
-  ) {
-    return (data as { message: string }).message;
-  }
-
-  return fallback;
-}
 
 export async function GET(_request: NextRequest, { params }: RouteContext) {
   const apiKey = process.env.FMP_API_KEY;
@@ -67,26 +42,26 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
     );
   }
 
-  const url = new URL(`${FMP_BASE_URL}/profile/${encodeURIComponent(ticker)}`);
-  url.searchParams.set('apikey', apiKey);
-
   try {
-    const response = await fetch(url.toString());
-    const data = (await response.json()) as FmpProfile[] | { message?: string };
+    const profileResult = await fetchFmpJson<FmpProfile[]>('profile', apiKey, {
+      symbol: ticker,
+    });
 
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
+    if (!profileResult.ok) {
+      return NextResponse.json(
+        { status: 'ERROR', message: profileResult.message },
+        { status: profileResult.status >= 400 ? profileResult.status : 502 },
+      );
     }
 
-    if (!Array.isArray(data) || data.length === 0) {
-      const message = fmpErrorMessage(data, `No profile found for ${ticker}.`);
+    if (!Array.isArray(profileResult.data) || profileResult.data.length === 0) {
       return NextResponse.json(
-        { status: 'ERROR', message },
+        { status: 'ERROR', message: `No profile found for ${ticker}.` },
         { status: 404 },
       );
     }
 
-    const item = data[0];
+    const item = profileResult.data[0];
 
     return NextResponse.json({
       ticker: item.symbol ?? ticker,
@@ -95,10 +70,10 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
       industry: item.industry ?? null,
       description: item.description ?? null,
       exchange: item.exchange ?? null,
-      market_cap: item.mktCap ?? null,
+      market_cap: item.marketCap ?? null,
       price: item.price ?? null,
-      changes: item.changes ?? null,
-      logo_url: item.logo ?? `https://financialmodelingprep.com/image-stock/${ticker}.png`,
+      changes: item.change ?? null,
+      logo_url: item.image ?? fmpLogoUrl(ticker),
       website: item.website ?? null,
     });
   } catch (error) {

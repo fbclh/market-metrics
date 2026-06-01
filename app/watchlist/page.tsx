@@ -31,7 +31,7 @@ function WatchlistSkeleton() {
 
 export default function WatchlistPage() {
   const [items, setItems] = useState<WatchlistItem[]>([]);
-  const [activeTab, setActiveTab] = useState<WatchlistStatus>('watchlist');
+  const [activeTab, setActiveTab] = useState<WatchlistStatus>('watching');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingTicker, setPendingTicker] = useState<string | null>(null);

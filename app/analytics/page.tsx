@@ -9,7 +9,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -143,8 +142,8 @@ export default function AnalyticsPage() {
 
   const pieData = [
     {
-      name: 'Watchlist',
-      value: watchlistStats.watchlist,
+      name: 'Watching',
+      value: watchlistStats.watching,
       color: CHART_COLORS.blue,
     },
     {
@@ -226,7 +225,7 @@ export default function AnalyticsPage() {
                   <XAxis type="number" allowDecimals={false} {...chartAxisStyle} />
                   <YAxis
                     type="category"
-                    dataKey="name"
+                    dataKey="query"
                     width={120}
                     {...chartAxisStyle}
                   />
@@ -281,14 +280,14 @@ export default function AnalyticsPage() {
               <ol className="space-y-3">
                 {trending.map((item, index) => (
                   <li
-                    key={`${item.name}-${index}`}
+                    key={`${item.query}-${index}`}
                     className="flex items-center justify-between rounded-lg border border-white/10 bg-[#12243a] px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold text-[var(--brand-accent-light)]">
                         {index + 1}
                       </span>
-                      <span className="text-sm text-gray-300">{item.name}</span>
+                      <span className="text-sm text-gray-300">{item.query}</span>
                     </div>
                     <span className="rounded-full bg-[#0d1b2a] px-2.5 py-0.5 text-xs font-medium text-gray-300 ring-1 ring-white/10">
                       {item.count}
@@ -305,55 +304,62 @@ export default function AnalyticsPage() {
             ) : watchlistStats.total === 0 || pieData.length === 0 ? (
               <EmptyState />
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
-                  <Pie
-                    data={pieData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="44%"
-                    innerRadius={66}
-                    outerRadius={90}
-                    paddingAngle={2}
-                  >
-                    {pieData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} stroke="transparent" />
-                    ))}
-                  </Pie>
-                  <Legend
-                    verticalAlign="bottom"
-                    align="center"
-                    iconType="circle"
-                    iconSize={10}
-                    height={44}
-                    wrapperStyle={{ paddingTop: 10 }}
-                    formatter={(value) => (
-                      <span className="text-sm text-gray-400">{value}</span>
-                    )}
-                  />
-                  <text
-                    x="50%"
-                    y="44%"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fill="#ffffff"
-                    className="text-3xl font-bold"
-                  >
-                    {watchlistStats.total}
-                  </text>
-                  <text
-                    x="50%"
-                    y="50%"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fill={CHART_COLORS.label}
-                    className="text-sm"
-                  >
-                    total
-                  </text>
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="flex flex-col items-center">
+                <div className="h-[220px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+                      <Pie
+                        data={pieData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={66}
+                        outerRadius={88}
+                        paddingAngle={2}
+                      >
+                        {pieData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} stroke="transparent" />
+                        ))}
+                      </Pie>
+                      <text
+                        x="50%"
+                        y="50%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill="#ffffff"
+                        className="text-3xl font-bold"
+                      >
+                        {watchlistStats.total}
+                      </text>
+                      <text
+                        x="50%"
+                        y="58%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill={CHART_COLORS.label}
+                        className="text-sm"
+                      >
+                        total
+                      </text>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <ul className="mt-4 flex w-full flex-wrap items-center justify-center gap-x-8 gap-y-2">
+                  {pieData.map((entry) => (
+                    <li
+                      key={entry.name}
+                      className="flex items-center gap-2 text-sm text-gray-400"
+                    >
+                      <span
+                        className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: entry.color }}
+                      />
+                      {entry.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </SectionCard>
         </div>

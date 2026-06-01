@@ -37,6 +37,17 @@ export const Home = () => {
         setNextCursor(response.nextCursor);
         setError(null);
 
+        if (!append && query.trim() && response.results.length > 0) {
+          fetch('/api/telemetry/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: query.trim(),
+              session_id: getSessionId(),
+            }),
+          }).catch(() => {});
+        }
+
         if (!append) {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -81,15 +92,6 @@ export const Home = () => {
     if (!query) {
       return;
     }
-
-    fetch('/api/telemetry/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query,
-        session_id: getSessionId(),
-      }),
-    }).catch(() => {});
 
     setActiveSearch(query);
   };

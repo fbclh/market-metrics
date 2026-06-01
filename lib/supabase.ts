@@ -27,7 +27,7 @@
     logo_url     text,
     sector       text,
     status       text not null check (status in
-                 ('watchlist','researching','invested')),
+                 ('watching','researching','invested')),
     created_at   timestamptz default now(),
     constraint watchlist_session_ticker_unique unique (session_id, ticker)
   );

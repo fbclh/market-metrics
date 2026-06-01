@@ -96,7 +96,7 @@ export async function POST(request: Request) {
 
   if (!isWatchlistStatus(status)) {
     return NextResponse.json(
-      { ok: false, error: 'status must be watchlist, researching, or invested.' },
+      { ok: false, error: 'status must be watching, researching, or invested.' },
       { status: 400 },
     );
   }

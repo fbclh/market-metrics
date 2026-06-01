@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { mergeTopAssetsByTicker } from '@/lib/search-display-names';
 
+export const dynamic = 'force-dynamic';
+
 function aggregateTopAssets(rows: { ticker: string }[]) {
   const counts = new Map<string, number>();
 

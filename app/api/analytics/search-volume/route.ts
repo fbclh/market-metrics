@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+export const dynamic = 'force-dynamic';
+
 function aggregateSearchVolume(rows: { created_at: string }[]) {
   const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
   const counts = new Map<string, number>();
