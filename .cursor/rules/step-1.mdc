@@ -3,8 +3,8 @@ alwaysApply: false
 ---
 
 ## Goal
-Replace the game-metrics codebase with a stock research platform.
-Remove all RAWG/game references and replace with Massive API/stocks.
+Build the market-metrics stock research platform.
+Remove all RAWG/game references and replace with FMP API/stocks.
 The app must run and show a working stock search grid before this 
 step is considered done.
 
@@ -22,7 +22,7 @@ step is considered done.
 ---
 
 ## Task 1 — Update package.json
-Change name from "game-metrics" to "market-metrics"
+Change name to "market-metrics"
 
 ---
 

@@ -190,7 +190,7 @@ git push origin main
 ---
 
 ## Task 10 — Deploy to Vercel
-1. Go to vercel.com → Add New Project → import game-metrics from GitHub
+1. Go to vercel.com → Add New Project → import market-metrics from GitHub
 2. Framework: Next.js (auto-detected)
 3. Root directory: leave as default
 4. Add environment variables:

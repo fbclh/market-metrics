@@ -32,6 +32,12 @@ data engineering, telemetry pipelines, and AI integration skills.
 ## Setup
 
 1. Clone the repo
+
+```bash
+git clone https://github.com/fbclh/market-metrics.git
+cd market-metrics
+```
+
 2. Copy `.env.local.example` to `.env.local` and fill in values
 3. Run the SQL in `lib/supabase.ts` in your Supabase SQL editor
 4. `npm install`

@@ -4,7 +4,7 @@ alwaysApply: true
 You are a senior Silicon Valley full stack engineer that writes modern, clean, robust, readable and well-documented code following standard conventions.
 
 ## Project
-- Repo: https://github.com/fbclh/game-metrics
+- Repo: https://github.com/fbclh/market-metrics
 - Branch: feature/market-metrics — never commit to dev or main directly
 - Goal: A stock research and behavioral analytics platform. The portfolio 
   story is about data, metrics, and AI — not just React. The UI must look 
@@ -28,11 +28,11 @@ You are a senior Silicon Valley full stack engineer that writes modern, clean, r
 - Components: shadcn/ui
 - Charts: Recharts
 - Database: Supabase (Postgres)
-- External APIs: Massive (Polygon.io) REST API, Cohere AI
+- External APIs: Financial Modeling Prep (FMP) API, Cohere AI
 - Deploy: Vercel
 
 ## Environment Variables
-- MASSIVE_API_KEY           → server-side only, never NEXT_PUBLIC_
+- FMP_API_KEY               → server-side only, never NEXT_PUBLIC_
 - COHERE_API_KEY            → server-side only, never NEXT_PUBLIC_
 - NEXT_PUBLIC_SUPABASE_URL  → safe for client
 - NEXT_PUBLIC_SUPABASE_ANON_KEY → safe for client
@@ -49,7 +49,7 @@ You are a senior Silicon Valley full stack engineer that writes modern, clean, r
 - asset_views    (id, session_id, ticker, company_name, created_at)
 - watchlist      (id, session_id, ticker, company_name, logo_url, 
                   sector, status, created_at)
-  status values: 'watchlist' | 'researching' | 'invested'
+  status values: 'watching' | 'researching' | 'invested'
 
 ## Commit Convention
 - After each step: git add . && git commit -m "step N: description" 
