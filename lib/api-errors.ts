@@ -1,5 +1,5 @@
 export const API_RATE_LIMIT_MESSAGE =
-  'Market data is temporarily unavailable — the API rate limit has been reached. Please wait a minute and try again.';
+  'Market data is temporarily unavailable — the API rate limit has been reached.';
 
 type ErrorPayload = {
   message?: string;

@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  fetchFmpJson,
-  fmpLogoUrl,
-} from '@/lib/fmp';
+import { fetchFmpJson } from '@/lib/fmp';
 
 type StockResult = {
   ticker: string;
@@ -10,12 +7,7 @@ type StockResult = {
   sector: string | null;
   exchange: string;
   logo_url: string;
-};
-
-type DowJonesItem = {
-  symbol?: string;
-  name?: string;
-  sector?: string;
+  marketCap?: number;
 };
 
 type SearchItem = {
@@ -25,38 +17,15 @@ type SearchItem = {
   currency?: string;
 };
 
-type ScreenerItem = {
-  symbol?: string;
-  companyName?: string;
-  sector?: string;
-  exchangeShortName?: string;
-};
-
 type MostActiveItem = {
   symbol?: string;
   name?: string;
+  sector?: string;
   exchange?: string;
+  marketCap?: number;
 };
 
 const DEFAULT_LIST_LIMIT = 30;
-const FMP_V3_BASE_URL = 'https://financialmodelingprep.com/api/v3';
-
-function mapDowJonesItem(item: DowJonesItem): StockResult | null {
-  const ticker = item.symbol?.trim().toUpperCase();
-  const name = item.name?.trim();
-
-  if (!ticker || !name) {
-    return null;
-  }
-
-  return {
-    ticker,
-    name,
-    sector: item.sector?.trim() || null,
-    exchange: 'NYSE/NASDAQ',
-    logo_url: fmpLogoUrl(ticker),
-  };
-}
 
 function mapSearchItem(item: SearchItem): StockResult | null {
   const ticker = item.symbol?.trim().toUpperCase();
@@ -71,117 +40,31 @@ function mapSearchItem(item: SearchItem): StockResult | null {
     name,
     sector: null,
     exchange: item.exchange?.trim() || '',
-    logo_url: fmpLogoUrl(ticker),
-  };
-}
-
-function mapScreenerItem(item: ScreenerItem): StockResult | null {
-  const ticker = item.symbol?.trim().toUpperCase();
-  const name = item.companyName?.trim();
-
-  if (!ticker || !name) {
-    return null;
-  }
-
-  return {
-    ticker,
-    name,
-    sector: item.sector?.trim() || null,
-    exchange: item.exchangeShortName?.trim() || 'NYSE/NASDAQ',
-    logo_url: fmpLogoUrl(ticker),
+    logo_url: `https://financialmodelingprep.com/image-stock/${ticker}.png`,
   };
 }
 
 function mapMostActiveItem(item: MostActiveItem): StockResult | null {
-  const ticker = item.symbol?.trim().toUpperCase();
+  const symbol = item.symbol?.trim();
   const name = item.name?.trim();
 
-  if (!ticker || !name) {
+  if (!symbol || !name) {
     return null;
   }
 
   return {
-    ticker,
+    ticker: symbol.toUpperCase(),
     name,
-    sector: null,
-    exchange: item.exchange?.trim() || '',
-    logo_url: fmpLogoUrl(ticker),
+    sector: item.sector ?? null,
+    exchange: item.exchange ?? '',
+    logo_url: `https://financialmodelingprep.com/image-stock/${symbol}.png`,
+    marketCap: item.marketCap ?? 0,
   };
 }
 
 function preferUsSearchResults(items: SearchItem[]): SearchItem[] {
   const usItems = items.filter((item) => item.currency === 'USD');
   return usItems.length > 0 ? usItems : items;
-}
-
-async function loadDefaultStocks(apiKey: string): Promise<StockResult[]> {
-  const dowUrl = new URL(`${FMP_V3_BASE_URL}/dowjones_constituent`);
-  dowUrl.searchParams.set('apikey', apiKey);
-
-  const dowResponse = await fetch(dowUrl.toString());
-  const dowData = (await dowResponse.json()) as DowJonesItem[] | { 'Error Message'?: string };
-
-  console.log('FMP dowjones response status:', dowResponse.status);
-  console.log(
-    'FMP dowjones data sample:',
-    JSON.stringify(dowData).slice(0, 200),
-  );
-
-  if (dowResponse.ok && Array.isArray(dowData) && dowData.length > 0) {
-    const results = dowData
-      .map(mapDowJonesItem)
-      .filter((item): item is StockResult => item !== null);
-
-    if (results.length > 0) {
-      return results;
-    }
-  }
-
-  const screenerUrl = new URL(`${FMP_V3_BASE_URL}/stock-screener`);
-  screenerUrl.searchParams.set('marketCapMoreThan', '100000000000');
-  screenerUrl.searchParams.set('exchange', 'NYSE,NASDAQ');
-  screenerUrl.searchParams.set('limit', String(DEFAULT_LIST_LIMIT));
-  screenerUrl.searchParams.set('apikey', apiKey);
-
-  const screenerResponse = await fetch(screenerUrl.toString());
-  const screenerData = (await screenerResponse.json()) as
-    | ScreenerItem[]
-    | { 'Error Message'?: string };
-
-  console.log('FMP screener response status:', screenerResponse.status);
-  console.log(
-    'FMP screener data sample:',
-    JSON.stringify(screenerData).slice(0, 200),
-  );
-
-  if (screenerResponse.ok && Array.isArray(screenerData) && screenerData.length > 0) {
-    const screenerResults = screenerData
-      .map(mapScreenerItem)
-      .filter((item): item is StockResult => item !== null)
-      .slice(0, DEFAULT_LIST_LIMIT);
-
-    if (screenerResults.length > 0) {
-      return screenerResults;
-    }
-  }
-
-  const activesResult = await fetchFmpJson<MostActiveItem[]>(
-    'most-actives',
-    apiKey,
-  );
-
-  if (activesResult.ok && Array.isArray(activesResult.data)) {
-    const activeResults = activesResult.data
-      .map(mapMostActiveItem)
-      .filter((item): item is StockResult => item !== null)
-      .slice(0, DEFAULT_LIST_LIMIT);
-
-    if (activeResults.length > 0) {
-      return activeResults;
-    }
-  }
-
-  throw new Error('Failed to load default stocks.');
 }
 
 export async function GET(request: NextRequest) {
@@ -224,26 +107,38 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const results = await loadDefaultStocks(apiKey);
+    const activesResult = await fetchFmpJson<MostActiveItem[]>(
+      'most-actives',
+      apiKey,
+    );
 
-    if (results.length === 0) {
+    if (!activesResult.ok) {
+      return NextResponse.json(
+        { status: 'ERROR', message: activesResult.message },
+        { status: activesResult.status >= 400 ? activesResult.status : 502 },
+      );
+    }
+
+    if (!Array.isArray(activesResult.data)) {
       return NextResponse.json(
         { status: 'ERROR', message: 'Failed to load stocks.' },
         { status: 502 },
       );
     }
 
-    return NextResponse.json(
-      {
-        results,
-        total: results.length,
-      },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-        },
-      },
-    );
+    const mapped = activesResult.data
+      .map(mapMostActiveItem)
+      .filter((item): item is StockResult => item !== null);
+
+    const sorted = mapped
+      .filter((item) => (item.marketCap ?? 0) > 0)
+      .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
+      .slice(0, 30);
+
+    return NextResponse.json({
+      results: sorted,
+      total: sorted.length,
+    });
   } catch (error) {
     return NextResponse.json(
       {

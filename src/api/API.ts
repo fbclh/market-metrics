@@ -11,6 +11,7 @@ export type StockResult = {
   sector: string | null;
   exchange: string;
   logo_url: string;
+  marketCap?: number;
 };
 
 export type SearchStocksParams = {

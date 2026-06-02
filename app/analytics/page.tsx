@@ -180,94 +180,7 @@ export default function AnalyticsPage() {
         </header>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <SectionCard
-            title="Search Activity — Last 30 Days"
-            className="lg:col-span-2"
-          >
-            {loading ? (
-              <ChartSkeleton />
-            ) : searchVolume.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={searchVolume}>
-                  <defs>
-                    <linearGradient id="searchVolumeFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={CHART_COLORS.blue} stopOpacity={0.35} />
-                      <stop offset="95%" stopColor={CHART_COLORS.blue} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
-                  <XAxis dataKey="date" {...chartAxisStyle} />
-                  <YAxis allowDecimals={false} {...chartAxisStyle} />
-                  <Tooltip {...chartTooltipStyle} />
-                  <Area
-                    type="monotone"
-                    dataKey="count"
-                    stroke={CHART_COLORS.blue}
-                    fill="url(#searchVolumeFill)"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </SectionCard>
-
-          <SectionCard title="Most Searched">
-            {loading ? (
-              <ChartSkeleton />
-            ) : topSearches.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={topSearches} layout="vertical" margin={{ left: 20 }}>
-                  <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
-                  <XAxis type="number" allowDecimals={false} {...chartAxisStyle} />
-                  <YAxis
-                    type="category"
-                    dataKey="query"
-                    width={120}
-                    {...chartAxisStyle}
-                  />
-                  <Tooltip {...chartTooltipStyle} />
-                  <Bar dataKey="count" fill={CHART_COLORS.blue} radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </SectionCard>
-
-          <SectionCard title="Most Viewed">
-            {loading ? (
-              <ChartSkeleton />
-            ) : topAssets.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={topAssets}>
-                  <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="ticker"
-                    tickFormatter={(value) =>
-                      truncateLabel(String(value).toUpperCase())
-                    }
-                    interval={0}
-                    angle={-25}
-                    textAnchor="end"
-                    height={70}
-                    {...chartAxisStyle}
-                  />
-                  <YAxis allowDecimals={false} {...chartAxisStyle} />
-                  <Tooltip
-                    {...chartTooltipStyle}
-                    labelFormatter={(value) => String(value).toUpperCase()}
-                  />
-                  <Bar dataKey="count" fill={CHART_COLORS.emerald} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </SectionCard>
-
-          <SectionCard title="Trending This Week">
+          <SectionCard title="Trending This Week" className="lg:order-1">
             {loading ? (
               <div className="space-y-3">
                 {Array.from({ length: 5 }).map((_, index) => (
@@ -298,14 +211,17 @@ export default function AnalyticsPage() {
             )}
           </SectionCard>
 
-          <SectionCard title="My Portfolio">
+          <SectionCard
+            title="My Portfolio"
+            className="lg:order-2 border-[var(--brand-accent-light)]/30 shadow-lg shadow-[var(--brand-accent-light)]/5"
+          >
             {loading ? (
-              <ChartSkeleton />
+              <ChartSkeleton height={280} />
             ) : watchlistStats.total === 0 || pieData.length === 0 ? (
               <EmptyState />
             ) : (
               <div className="flex flex-col items-center">
-                <div className="h-[220px] w-full">
+                <div className="h-[260px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                       <Pie
@@ -314,8 +230,8 @@ export default function AnalyticsPage() {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        innerRadius={66}
-                        outerRadius={88}
+                        innerRadius={72}
+                        outerRadius={98}
                         paddingAngle={2}
                       >
                         {pieData.map((entry) => (
@@ -328,7 +244,7 @@ export default function AnalyticsPage() {
                         textAnchor="middle"
                         dominantBaseline="middle"
                         fill="#ffffff"
-                        className="text-3xl font-bold"
+                        className="text-4xl font-bold"
                       >
                         {watchlistStats.total}
                       </text>
@@ -349,7 +265,7 @@ export default function AnalyticsPage() {
                   {pieData.map((entry) => (
                     <li
                       key={entry.name}
-                      className="flex items-center gap-2 text-sm text-gray-400"
+                      className="flex items-center gap-2 text-sm text-gray-300"
                     >
                       <span
                         className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
@@ -362,34 +278,121 @@ export default function AnalyticsPage() {
               </div>
             )}
           </SectionCard>
-        </div>
 
-        <SectionCard title="Watchlist by Sector" className="mt-6">
-          {loading ? (
-            <ChartSkeleton />
-          ) : sectorBreakdown.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={sectorBreakdown}
-                layout="vertical"
-                margin={{ left: 20 }}
-              >
-                <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
-                <XAxis type="number" allowDecimals={false} {...chartAxisStyle} />
-                <YAxis
-                  type="category"
-                  dataKey="sector"
-                  width={120}
-                  {...chartAxisStyle}
-                />
-                <Tooltip {...chartTooltipStyle} />
-                <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </SectionCard>
+          <SectionCard title="Most Searched" className="lg:order-3">
+            {loading ? (
+              <ChartSkeleton />
+            ) : topSearches.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={topSearches} layout="vertical" margin={{ left: 20 }}>
+                  <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
+                  <XAxis type="number" allowDecimals={false} {...chartAxisStyle} />
+                  <YAxis
+                    type="category"
+                    dataKey="query"
+                    width={120}
+                    {...chartAxisStyle}
+                  />
+                  <Tooltip {...chartTooltipStyle} />
+                  <Bar dataKey="count" fill={CHART_COLORS.blue} radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </SectionCard>
+
+          <SectionCard title="Most Viewed" className="lg:order-4">
+            {loading ? (
+              <ChartSkeleton />
+            ) : topAssets.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={topAssets}>
+                  <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="ticker"
+                    tickFormatter={(value) =>
+                      truncateLabel(String(value).toUpperCase())
+                    }
+                    interval={0}
+                    angle={-25}
+                    textAnchor="end"
+                    height={70}
+                    {...chartAxisStyle}
+                  />
+                  <YAxis allowDecimals={false} {...chartAxisStyle} />
+                  <Tooltip
+                    {...chartTooltipStyle}
+                    labelFormatter={(value) => String(value).toUpperCase()}
+                  />
+                  <Bar dataKey="count" fill={CHART_COLORS.emerald} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </SectionCard>
+
+          <SectionCard title="Watchlist by Sector" className="lg:order-5 lg:col-span-2">
+            {loading ? (
+              <ChartSkeleton />
+            ) : sectorBreakdown.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={sectorBreakdown}
+                  layout="vertical"
+                  margin={{ left: 20 }}
+                >
+                  <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
+                  <XAxis type="number" allowDecimals={false} {...chartAxisStyle} />
+                  <YAxis
+                    type="category"
+                    dataKey="sector"
+                    width={120}
+                    {...chartAxisStyle}
+                  />
+                  <Tooltip {...chartTooltipStyle} />
+                  <Bar dataKey="count" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </SectionCard>
+
+          <SectionCard
+            title="Search Activity — Last 30 Days"
+            className="lg:order-6 lg:col-span-2"
+          >
+            {loading ? (
+              <ChartSkeleton />
+            ) : searchVolume.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={searchVolume}>
+                  <defs>
+                    <linearGradient id="searchVolumeFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={CHART_COLORS.blue} stopOpacity={0.35} />
+                      <stop offset="95%" stopColor={CHART_COLORS.blue} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="3 3" />
+                  <XAxis dataKey="date" {...chartAxisStyle} />
+                  <YAxis allowDecimals={false} {...chartAxisStyle} />
+                  <Tooltip {...chartTooltipStyle} />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke={CHART_COLORS.blue}
+                    fill="url(#searchVolumeFill)"
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </SectionCard>
+        </div>
       </div>
     </div>
   );

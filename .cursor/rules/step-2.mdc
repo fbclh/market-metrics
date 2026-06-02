@@ -1,3 +1,216 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
+
+## Goal
+Add the stock detail page, reset Supabase tables for market-metrics,
+create the anonymous session cookie, and start logging telemetry
+(search events and asset views) to Supabase.
+
+## Scope — Do NOT go beyond this
+- No watchlist UI yet (Step 3)
+- No analytics dashboard yet (Step 4)
+- No Cohere AI yet (Step 5)
+- No auth, no login, no user accounts — ever
+
+## Do Not
+- Break the existing stock search grid
+- Use any HTTP library — native fetch only
+- Expose any API key to the browser
+- Commit broken code
+
+---
+
+## Task 1 — Update Supabase client
+In lib/supabase.ts update the SQL comment block to reflect 
+market-metrics schema:
+
+  -- search_events (same as before)
+  create table search_events (
+    id          uuid primary key default gen_random_uuid(),
+    session_id  text not null,
+    query       text not null,
+    created_at  timestamptz default now()
+  );
+
+  -- asset_views (replaces game_views)
+  create table asset_views (
+    id           uuid primary key default gen_random_uuid(),
+    session_id   text not null,
+    ticker       text not null,
+    company_name text not null,
+    created_at   timestamptz default now()
+  );
+
+  -- watchlist (replaces play_list)
+  create table watchlist (
+    id           uuid primary key default gen_random_uuid(),
+    session_id   text not null,
+    ticker       text not null,
+    company_name text not null,
+    logo_url     text,
+    sector       text,
+    status       text not null check (status in 
+                 ('watchlist','researching','invested')),
+    created_at   timestamptz default now(),
+    constraint watchlist_session_ticker_unique unique (session_id, ticker)
+  );
+
+Keep createClient and createServerClient exports exactly as they are.
+
+---
+
+## Task 2 — Run SQL in Supabase
+Remind the user to run the following in Supabase SQL editor:
+
+drop table if exists search_events cascade;
+drop table if exists game_views cascade;
+drop table if exists play_list cascade;
+drop table if exists asset_views cascade;
+drop table if exists watchlist cascade;
+
+Then create the new tables and policies:
+
+create table search_events (
+  id          uuid primary key default gen_random_uuid(),
+  session_id  text not null,
+  query       text not null,
+  created_at  timestamptz default now()
+);
+
+create table asset_views (
+  id           uuid primary key default gen_random_uuid(),
+  session_id   text not null,
+  ticker       text not null,
+  company_name text not null,
+  created_at   timestamptz default now()
+);
+
+create table watchlist (
+  id           uuid primary key default gen_random_uuid(),
+  session_id   text not null,
+  ticker       text not null,
+  company_name text not null,
+  logo_url     text,
+  sector       text,
+  status       text not null check (status in 
+               ('watchlist','researching','invested')),
+  created_at   timestamptz default now(),
+  constraint watchlist_session_ticker_unique unique (session_id, ticker)
+);
+
+alter table search_events enable row level security;
+alter table asset_views enable row level security;
+alter table watchlist enable row level security;
+
+create policy "anon insert search_events"
+  on search_events for insert to anon with check (true);
+create policy "anon select search_events"
+  on search_events for select to anon using (true);
+
+create policy "anon insert asset_views"
+  on asset_views for insert to anon with check (true);
+create policy "anon select asset_views"
+  on asset_views for select to anon using (true);
+
+create policy "anon select watchlist"
+  on watchlist for select to anon using (true);
+create policy "anon insert watchlist"
+  on watchlist for insert to anon with check (true);
+create policy "anon update watchlist"
+  on watchlist for update to anon using (true);
+create policy "anon delete watchlist"
+  on watchlist for delete to anon using (true);
+
+grant usage on schema public to anon;
+grant select, insert, update, delete on all tables in schema public to anon;
+grant execute on all functions in schema public to anon;
+
+---
+
+## Task 3 — Update session cookie
+In lib/session.ts confirm cookie name is mm_session_id.
+If it still says gm_session_id update it to mm_session_id.
+
+---
+
+## Task 4 — Search telemetry API route
+Update app/api/telemetry/search/route.ts — keep exact same logic,
+no changes needed since it writes to search_events which still exists.
+
+---
+
+## Task 5 — Asset view telemetry API route
+Replace app/api/telemetry/view/route.ts:
+- Method: POST
+- Body: { ticker: string, company_name: string, session_id: string }
+- Validate all three fields
+- Insert one row into asset_views
+- Return { ok: true } on success
+- Return { ok: false, error: string } on failure
+- Use createClient directly with env vars
+
+---
+
+## Task 6 — Massive stock detail API route
+Create app/api/stocks/[ticker]/route.ts:
+- Method: GET
+- Fetch company details:
+  https://api.polygon.io/v3/reference/tickers/{ticker}
+  ?apiKey=process.env.MASSIVE_API_KEY
+- Fetch previous day close price:
+  https://api.polygon.io/v2/aggs/ticker/{ticker}/prev
+  ?apiKey=process.env.MASSIVE_API_KEY
+- Return merged: { ...tickerDetails.results, previousClose: aggResults[0] }
+- Handle errors with appropriate status codes
+
+---
+
+## Task 7 — Stock detail page
+Create app/stocks/[ticker]/page.tsx:
+- Fetch stock data from /api/stocks/[ticker]
+- Display:
+  - Company logo (if available) or ticker initials placeholder
+  - Ticker symbol (large, bold)
+  - Company name
+  - Sector and industry
+  - Previous close price (formatted as currency)
+  - Market cap (formatted: $1.2T, $450B etc)
+  - Description (company description from Massive)
+  - Exchange and market type
+- On mount fire POST to /api/telemetry/view with ticker, 
+  company_name, session_id from getSessionId()
+- Add "Save to Watchlist" button (placeholder — Step 3 wires it up)
+- Add "← Back to stocks" link returning to /
+- Style with Tailwind — consistent with existing app
+
+---
+
+## Task 8 — Make stock cards clickable
+In src/components/Stocks.tsx:
+- Wrap each stock card in Next.js Link href={`/stocks/${stock.ticker}`}
+- Do not change any existing card styles
+
+---
+
+## Task 9 — Wire search telemetry
+In src/pages/Home.tsx confirm search telemetry fires on search.
+If it references old game logic update to use mm_session_id cookie.
+
+---
+
+## Task 10 — Verify
+- npm run dev starts with zero errors
+- Clicking a stock card navigates to /stocks/[ticker]
+- Detail page shows company info and previous close price
+- Searching a term logs to search_events in Supabase
+- Visiting a detail page logs to asset_views in Supabase
+- "Save to Watchlist" button visible but not functional yet
+- npm run build completes with no errors
+
+---
+
+## Task 11 — Commit
+git add .
+git commit -m "step 2: stock detail page, Supabase reset for market-metrics, telemetry"
+git push origin feature/market-metrics

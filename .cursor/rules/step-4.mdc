@@ -1,3 +1,204 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
+## Goal
+Build the analytics dashboard. This is the centrepiece of the portfolio 
+story — real behavioral data from actual usage visualized with Recharts.
+Everything shown is powered by real data flowing into Supabase from 
+Steps 2 and 3.
+
+## Scope — Do NOT go beyond this
+- No Cohere AI yet (Step 5)
+- No new Supabase tables — read from search_events, asset_views, 
+  watchlist only
+- No auth, no login, no user accounts — ever
+
+## Do Not
+- Break existing stock grid, detail page, or watchlist
+- Use any charting library other than Recharts
+- Use any HTTP library — native fetch only
+- Change any existing colors or styles
+- Commit broken or incomplete code
+- Touch dev or main branch
+
+---
+
+## Task 1 — Create Supabase analytics functions
+Run the following SQL in the Supabase SQL editor for the 
+market-metrics project (aykewtafwsasqocsyrcz):
+
+create or replace function analytics_top_searches()
+returns table(query text, count bigint)
+language sql
+security definer
+as $$
+  select query, count(*) as count
+  from search_events
+  group by query
+  order by count desc
+  limit 10;
+$$;
+
+create or replace function analytics_top_assets()
+returns table(ticker text, company_name text, count bigint)
+language sql
+security definer
+as $$
+  select ticker, company_name, count(*) as count
+  from asset_views
+  group by ticker, company_name
+  order by count desc
+  limit 10;
+$$;
+
+create or replace function analytics_search_volume()
+returns table(date text, count bigint)
+language sql
+security definer
+as $$
+  select date_trunc('day', created_at)::date::text as date, 
+         count(*) as count
+  from search_events
+  where created_at >= now() - interval '30 days'
+  group by date_trunc('day', created_at)::date
+  order by date asc;
+$$;
+
+create or replace function analytics_trending()
+returns table(query text, count bigint)
+language sql
+security definer
+as $$
+  select query, count(*) as count
+  from search_events
+  where created_at >= now() - interval '7 days'
+  group by query
+  order by count desc
+  limit 10;
+$$;
+
+create or replace function analytics_watchlist_stats()
+returns table(status text, count bigint)
+language sql
+security definer
+as $$
+  select status, count(*) as count
+  from watchlist
+  group by status;
+$$;
+
+grant execute on function analytics_top_searches() to anon;
+grant execute on function analytics_top_assets() to anon;
+grant execute on function analytics_search_volume() to anon;
+grant execute on function analytics_trending() to anon;
+grant execute on function analytics_watchlist_stats() to anon;
+
+---
+
+## Task 2 — Analytics API routes
+Create all five routes using createClient directly with env vars.
+Never import from @/lib/supabase.
+
+Create app/api/analytics/top-searches/route.ts:
+- GET handler
+- const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+- calls supabase.rpc('analytics_top_searches')
+- returns NextResponse.json({ data })
+- on error: console.error and return { data: null } with status 500
+
+Create app/api/analytics/top-assets/route.ts:
+- Same pattern, calls supabase.rpc('analytics_top_assets')
+- returns { data: Array<{ ticker, company_name, count }> }
+
+Create app/api/analytics/search-volume/route.ts:
+- Same pattern, calls supabase.rpc('analytics_search_volume')
+- returns { data: Array<{ date, count }> }
+
+Create app/api/analytics/trending/route.ts:
+- Same pattern, calls supabase.rpc('analytics_trending')
+- returns { data: Array<{ query, count }> }
+
+Create app/api/analytics/watchlist-stats/route.ts:
+- Same pattern, calls supabase.rpc('analytics_watchlist_stats')
+- Transform rows into: 
+  { watchlist: number, researching: number, invested: number, total: number }
+- returns { data: { watchlist, researching, invested, total } }
+
+---
+
+## Task 3 — Analytics dashboard page
+Create app/analytics/page.tsx as a client component ('use client').
+
+Page background: #0a0f1e
+All section cards: dark navy background consistent with existing app
+
+Layout: responsive grid, 2 columns on desktop, 1 on mobile.
+
+Section 1 — Search Activity Last 30 Days (full width):
+- Recharts AreaChart
+- X axis: date, Y axis: search count
+- Stroke: #3b82f6 (blue), fill with low opacity
+- Title: "Search Activity — Last 30 Days"
+
+Section 2 — Most Searched Tickers (left column):
+- Recharts BarChart layout="vertical"
+- X axis: count, Y axis: query term
+- Bar color: #3b82f6
+- Title: "Most Searched"
+
+Section 3 — Most Viewed Stocks (right column):
+- Recharts BarChart
+- X axis: ticker, Y axis: view count
+- Bar color: #10b981 (emerald)
+- Title: "Most Viewed"
+
+Section 4 — Trending This Week (left column):
+- Ranked list, no chart needed
+- Numbered 1-10, query term, count badge
+- Title: "Trending This Week"
+
+Section 5 — My Portfolio Stats (right column):
+- Recharts PieChart donut style
+- Three segments: Watchlist / Researching / Invested
+- Colors: #3b82f6, #f59e0b, #10b981
+- Show total count in center
+- Title: "My Portfolio"
+
+All charts:
+- Wrap in ResponsiveContainer width="100%" height={300}
+- Tooltip background: #1e293b, border: #334155
+- Axis labels: #9ca3af
+- Loading: show skeleton placeholder per section
+- Error/empty: show "No data yet" message — never crash
+
+---
+
+## Task 4 — Types
+Create types/analytics.ts with interfaces for all API responses:
+- TopSearchItem: { query: string, count: number }
+- TopAssetItem: { ticker: string, company_name: string, count: number }
+- SearchVolumeItem: { date: string, count: number }
+- TrendingItem: { query: string, count: number }
+- WatchlistStats: { watchlist: number, researching: number, 
+                    invested: number, total: number }
+
+---
+
+## Task 5 — Verify before committing
+- npm run dev starts with zero errors
+- /analytics page loads without crashing
+- All 5 sections render (even if showing "No data yet")
+- Searching a stock logs to search_events — visible in charts
+- Visiting a stock detail page logs to asset_views — visible in charts
+- Saving a stock to watchlist — visible in My Portfolio pie chart
+- npm run build completes with no errors
+
+---
+
+## Task 6 — Commit
+git add .
+git commit -m "step 4: analytics dashboard with Recharts for market-metrics"
+git push origin feature/market-metrics

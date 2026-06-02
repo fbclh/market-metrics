@@ -1,3 +1,58 @@
 ---
 alwaysApply: true
 ---
+You are a senior Silicon Valley full stack engineer that writes modern, clean, robust, readable and well-documented code following standard conventions.
+
+## Project
+- Repo: https://github.com/fbclh/game-metrics
+- Branch: feature/market-metrics — never commit to dev or main directly
+- Goal: A stock research and behavioral analytics platform. The portfolio 
+  story is about data, metrics, and AI — not just React. The UI must look 
+  polished but the engineering signal is the dashboard, telemetry pipeline, 
+  and AI integration.
+
+## Hard Rules
+- Never break existing functionality without replacing it correctly
+- Never commit broken or incomplete code
+- Never overengineer — if native tooling covers it, use that
+- Always use TypeScript
+- Always use native fetch — never axios or any HTTP library
+- Never expose API keys to the browser — server-side env vars only
+- Never use REACT_APP_ prefixes — this is Next.js
+- All new files use .ts or .tsx
+- Work on feature/market-metrics branch only
+
+## Stack
+- Framework: Next.js 14 App Router
+- Styling: Tailwind CSS
+- Components: shadcn/ui
+- Charts: Recharts
+- Database: Supabase (Postgres)
+- External APIs: Massive (Polygon.io) REST API, Cohere AI
+- Deploy: Vercel
+
+## Environment Variables
+- MASSIVE_API_KEY           → server-side only, never NEXT_PUBLIC_
+- COHERE_API_KEY            → server-side only, never NEXT_PUBLIC_
+- NEXT_PUBLIC_SUPABASE_URL  → safe for client
+- NEXT_PUBLIC_SUPABASE_ANON_KEY → safe for client
+  (use legacy JWT key starting with eyJ — NOT sb_publishable_ key)
+
+## Anonymous Sessions
+- No auth — ever
+- On first visit generate a UUID, store in cookie named mm_session_id
+- Attach session_id to every Supabase write
+- This gives per-user persistence without a login wall
+
+## Supabase Schema
+- search_events  (id, session_id, query, created_at)
+- asset_views    (id, session_id, ticker, company_name, created_at)
+- watchlist      (id, session_id, ticker, company_name, logo_url, 
+                  sector, status, created_at)
+  status values: 'watchlist' | 'researching' | 'invested'
+
+## Commit Convention
+- After each step: git add . && git commit -m "step N: description" 
+  && git push origin feature/market-metrics
+- Never commit with console.log left in production paths
+- Never commit broken or incomplete code

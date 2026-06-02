@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { normalizeSearchQuery } from '@/lib/normalize-search-query';
+import { normalizeSearchQuery, formatSearchQueryDisplay } from '@/lib/normalize-search-query';
 
 type SearchTelemetryBody = {
   query?: unknown;
@@ -42,13 +42,7 @@ export async function POST(request: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
-  const normalizedQuery = query
-    .split(' ')
-    .map(
-      (word: string) =>
-        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
-    )
-    .join(' ');
+  const normalizedQuery = formatSearchQueryDisplay(query);
 
   const { error } = await supabase.from('search_events').insert({
     session_id: sessionId,

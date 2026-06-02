@@ -1,3 +1,215 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
+
+## Goal
+Ship the project. Add Cohere AI stock recommendations, deploy to Vercel,
+set up the keep-alive cron, and merge feature/market-metrics into dev 
+then main. Output is a live URL.
+
+## Do Not
+- Break any existing UI, routes, or Supabase queries
+- Use any HTTP library — native fetch only
+- Commit broken or incomplete code
+- Touch dev or main branch directly
+
+---
+
+## Task 1 — Cohere AI stock recommendations API route
+Create app/api/recommendations/route.ts:
+
+- Method: POST
+- Body: { session_id: string }
+- Fetch the user's watchlist from Supabase:
+  select ticker, company_name, sector, status 
+  from watchlist where session_id = $1
+- If the watchlist is empty return:
+  { recommendations: [], message: "Add some stocks to your portfolio first" }
+- Build a prompt:
+  "The user has these stocks in their portfolio:
+  [list each stock as: TICKER - Company Name (Sector) - Status]
+  Based on their investment interests and sectors, recommend 3 stocks 
+  they might want to research next.
+  For each recommendation provide: ticker, name, reason (2 sentences max).
+  Respond only with a JSON array, no markdown, no backticks:
+  [{ "ticker": string, "name": string, "reason": string }]"
+- Call Cohere API using native fetch:
+  POST https://api.cohere.com/v2/chat
+  Headers:
+    Authorization: Bearer process.env.COHERE_API_KEY
+    Content-Type: application/json
+  Body:
+  {
+    "model": "command-r",
+    "messages": [{ "role": "user", "content": prompt }]
+  }
+- Parse response: data.message.content[0].text
+- JSON.parse that text to get array of { ticker, name, reason }
+- Return { recommendations }
+- On any error return { recommendations: [], error: string } with status 500
+- Use createClient directly with env vars for Supabase
+- Use native fetch for Cohere — no SDK
+
+---
+
+## Task 2 — Recommendations UI on watchlist page
+In app/watchlist/page.tsx add a recommendations section:
+
+- Below the tabs, add an "AI Recommendations" section
+- On page load POST to /api/recommendations with session_id from getSessionId()
+- Show a loading skeleton while fetching
+- Render each recommendation as a card:
+  - Ticker symbol (bold, large)
+  - Company name
+  - Reason text (muted, smaller)
+  - A "Search for this stock" link that goes to /?search=TICKER
+- If recommendations is empty and message exists show the message
+- If watchlist has no stocks show: 
+  "Add stocks to your portfolio to get AI recommendations"
+- Style with Tailwind — dark theme, consistent with existing app
+
+---
+
+## Task 3 — Keep-alive API route
+Create app/api/ping/route.ts:
+- Method: GET
+- Run: select 1 from search_events limit 1 using Supabase client
+- Return { ok: true, timestamp: new Date().toISOString() }
+- Use createClient directly with env vars
+- export const dynamic = 'force-dynamic'
+
+---
+
+## Task 4 — Vercel cron job
+Create vercel.json in the repo root:
+{
+  "crons": [
+    {
+      "path": "/api/ping",
+      "schedule": "0 12 */3 * *"
+    }
+  ]
+}
+
+---
+
+## Task 5 — README update
+Update README.md:
+
+# MarketMetrics
+
+A stock research and behavioral analytics platform built to demonstrate
+data engineering, telemetry pipelines, and AI integration skills.
+
+## Live Demo
+[link — add after Vercel deploy]
+
+## Features
+- Stock discovery powered by Financial Modeling Prep (FMP) API
+- Dow Jones default view with most active stocks fallback
+- Anonymous session tracking — no login required
+- Search and view telemetry logged to Supabase Postgres
+- Portfolio tracker with Watching / Researching / Invested statuses
+- Analytics dashboard with real usage data (Recharts)
+- AI stock recommendations powered by Cohere
+- Watchlist by sector breakdown (GICS sectors)
+- Keep-alive cron to maintain Supabase free tier
+
+## Tech Stack
+- Next.js 14 App Router + TypeScript
+- Tailwind CSS
+- Supabase (Postgres)
+- Recharts
+- Financial Modeling Prep (FMP) API
+- Cohere AI API
+- Vercel
+
+## Setup
+1. Clone the repo
+2. Copy .env.local.example to .env.local and fill in values
+3. Run the SQL in lib/supabase.ts in your Supabase SQL editor
+4. npm install && npm run dev
+
+## Environment Variables
+FMP_API_KEY=your_fmp_api_key
+COHERE_API_KEY=your_cohere_trial_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_legacy_jwt_anon_key
+
+## Author
+Fabio C.
+
+## Attribution
+Market data provided by [Financial Modeling Prep](https://financialmodelingprep.com)
+
+---
+
+## Task 6 — Update .env.local.example
+Final clean version:
+FMP_API_KEY=your_fmp_api_key_here
+COHERE_API_KEY=your_cohere_trial_key_here
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+# Use legacy JWT anon key from Supabase Settings > API >
+# Legacy anon, service_role API keys — NOT the sb_publishable_ key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_legacy_jwt_anon_key
+
+---
+
+## Task 7 — Verify before committing
+- npm run build completes with zero errors
+- /api/ping returns { ok: true }
+- /api/recommendations returns recommendations when watchlist has stocks
+- vercel.json exists in repo root
+- README.md is updated
+- No MASSIVE_API_KEY or GEMINI_API_KEY references anywhere
+- npm run build completes with no errors
+
+Run:
+grep -r "MASSIVE\|GEMINI" . --include="*.ts" --include="*.tsx" --include="*.env*" --exclude-dir=node_modules --exclude-dir=.next
+
+Must return zero results.
+
+---
+
+## Task 8 — Commit
+git add .
+git commit -m "step 5: Cohere AI recommendations, keep-alive cron, final README"
+git push origin feature/market-metrics
+
+---
+
+## Task 9 — Merge to dev then main
+git checkout dev
+git merge feature/market-metrics
+git push origin dev
+
+git checkout main
+git merge dev
+git push origin main
+
+---
+
+## Task 10 — Deploy to Vercel
+1. Go to vercel.com → Add New Project → import game-metrics from GitHub
+2. Framework: Next.js (auto-detected)
+3. Root directory: leave as default
+4. Add environment variables:
+   FMP_API_KEY
+   COHERE_API_KEY
+   NEXT_PUBLIC_SUPABASE_URL
+   NEXT_PUBLIC_SUPABASE_ANON_KEY
+5. Click Deploy
+6. Once live copy the URL and update README live demo link
+7. git add README.md
+   git commit -m "docs: add live demo link"
+   git push origin main
+
+---
+
+## Done When
+- Live Vercel URL works and loads the stock grid
+- /analytics shows real data
+- /watchlist shows AI recommendations
+- Cron job visible in Vercel dashboard under Settings > Crons
+- main branch is clean and deployed
+- No MASSIVE or GEMINI references anywhere

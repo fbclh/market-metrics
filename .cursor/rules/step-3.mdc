@@ -1,3 +1,116 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
+
+## Goal
+Build the Watchlist feature. Users can save stocks to one of three 
+statuses: watchlist, researching, invested. Everything persists in 
+Supabase using the anonymous session cookie. No auth required.
+
+## Scope — Do NOT go beyond this
+- No analytics dashboard yet (Step 4)
+- No Cohere AI yet (Step 5)
+- No auth, no login, no user accounts — ever
+
+## Do Not
+- Break the existing stock search grid or stock detail page
+- Use any HTTP library — native fetch only
+- Expose any API key to the browser
+- Commit broken or incomplete code
+- Touch dev or main branch
+
+---
+
+## Task 1 — Watchlist API routes
+
+Create app/api/watchlist/route.ts:
+- GET: read session_id from query params, fetch all rows from watchlist
+  where session_id matches, return ordered by created_at desc
+  Use createClient directly:
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+- POST: body is { ticker, company_name, logo_url, sector, status, session_id }
+  Validate all required fields (ticker, company_name, status, session_id)
+  Upsert into watchlist (unique on session_id + ticker) so saving the 
+  same stock twice updates the status instead of duplicating.
+  Return { ok: true, data } on success.
+- Both methods use createClient directly with env vars — never import 
+  from @/lib/supabase
+
+Create app/api/watchlist/[ticker]/route.ts:
+- DELETE: read session_id from query params, delete the row where
+  ticker and session_id both match. Return { ok: true } on success.
+- PATCH: body is { status, session_id }
+  Update status for the matching ticker + session_id row.
+  Valid status values: 'watchlist' | 'researching' | 'invested'
+  Return { ok: true } on success.
+- Both methods use createClient directly with env vars
+
+---
+
+## Task 2 — Save to Watchlist button on stock detail page
+In app/stocks/[ticker]/page.tsx wire up the "Save to Watchlist" button:
+- On click open an inline dropdown with three options:
+  "Watchlist" | "Researching" | "Invested"
+- On selection POST to /api/watchlist with ticker, company_name, 
+  logo_url, sector, status, and session_id from getSessionId()
+- Show loading state on button while request is in flight
+- After success show current status label on button (e.g. "Researching ✓")
+- On page load fetch GET /api/watchlist?session_id={id} and check if 
+  this ticker is already saved — if so show current status pre-selected
+- Do not change any existing page styles
+
+---
+
+## Task 3 — Watchlist page
+Create app/watchlist/page.tsx:
+- Fetch user's watchlist via GET /api/watchlist?session_id={getSessionId()}
+- Display three tabs: Watchlist | Researching | Invested
+- Each tab shows a grid of stock cards matching that status
+- Each card shows: ticker (bold), company name, sector, status badge
+- Each card has two actions:
+  - Status dropdown to move stock to different status (calls PATCH)
+  - Remove button (calls DELETE) with a confirmation step
+- Empty state: if a tab has no stocks show a friendly message and a 
+  link back to / to discover stocks
+- Loading state: show skeleton while fetching
+- Do not change existing app colors or styles
+
+---
+
+## Task 4 — Update Nav link
+In src/components/layout/Nav.tsx confirm the "Watchlist" link points 
+to /watchlist (not /playlist). Update if needed.
+
+---
+
+## Task 5 — Types
+Create or update types/watchlist.ts:
+- Export WatchlistItem interface:
+  { id: string, session_id: string, ticker: string, company_name: string,
+    logo_url: string | null, sector: string | null, 
+    status: 'watchlist' | 'researching' | 'invested', created_at: string }
+- Export WatchlistStatus type:
+  'watchlist' | 'researching' | 'invested'
+- Use these types in all watchlist API routes and UI components
+
+---
+
+## Task 6 — Verify before committing
+- npm run dev starts with zero errors and zero TypeScript errors
+- Clicking "Save to Watchlist" on a stock detail page saves to Supabase
+  (verify row appears in watchlist table in Supabase Table Editor)
+- Navigating to /watchlist shows the saved stock under correct tab
+- Changing status via dropdown updates the row in Supabase
+- Removing a stock deletes the row from Supabase
+- Nav shows "Watchlist" link pointing to /watchlist
+- npm run build completes with no errors
+
+---
+
+## Task 7 — Commit
+git add .
+git commit -m "step 3: watchlist page with watchlist, researching, invested statuses"
+git push origin feature/market-metrics

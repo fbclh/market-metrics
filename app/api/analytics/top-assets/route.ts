@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { mergeTopAssetsByTicker } from '@/lib/search-display-names';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +12,10 @@ function aggregateTopAssets(rows: { ticker: string }[]) {
     counts.set(ticker, (counts.get(ticker) ?? 0) + 1);
   }
 
-  return Array.from(counts.entries()).map(([ticker, count]) => ({ ticker, count }));
+  return Array.from(counts.entries())
+    .map(([ticker, count]) => ({ ticker, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
 }
 
 export async function GET() {
@@ -26,11 +28,11 @@ export async function GET() {
   if (!error) {
     const rows = (data ?? []).map(
       (row: { ticker: string; count: number }) => ({
-        ticker: row.ticker,
+        ticker: row.ticker.trim().toUpperCase(),
         count: Number(row.count),
       }),
     );
-    return NextResponse.json({ data: mergeTopAssetsByTicker(rows) });
+    return NextResponse.json({ data: rows });
   }
 
   if (error.code !== 'PGRST202') {
@@ -48,6 +50,6 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    data: mergeTopAssetsByTicker(aggregateTopAssets(rows ?? [])),
+    data: aggregateTopAssets(rows ?? []),
   });
 }

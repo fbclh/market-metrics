@@ -240,12 +240,12 @@ export default function WatchlistPage() {
 
         <section className="mb-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow)]">
           <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">
-            AI Recommendations
+            Recommendations
           </h2>
 
           {loading ? null : items.length === 0 ? (
             <p className="text-sm text-[var(--text-secondary)]">
-              Add stocks to your portfolio to get AI recommendations
+              Add stocks to your portfolio to get recommendations
             </p>
           ) : recommendationsLoading ? (
             <RecommendationsSkeleton />

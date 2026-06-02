@@ -5,7 +5,7 @@ import { getSessionId } from '@/lib/session';
 import { resolveStockLoadError } from '@/lib/api-errors';
 import { searchStocks, type StockResult } from '../api/API';
 import { Stocks } from '../components/Stocks';
-import { Header } from '../components/Header';
+import { HomeHeader } from '../components/layout/HomeHeader';
 import styles from '../styles/Home.module.css';
 
 export const Home = () => {
@@ -82,17 +82,7 @@ export const Home = () => {
     }
   }, []);
 
-  const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const query = inputValue.trim();
-    if (!query) {
-      return;
-    }
-
+  const handleSearchSubmit = (query: string) => {
     setActiveSearch(query);
   };
 
@@ -106,10 +96,10 @@ export const Home = () => {
 
   return (
     <>
-      <Header
-        characters={inputValue}
-        handleOnChange={handleOnChange}
-        handleSubmit={handleSubmit}
+      <HomeHeader
+        searchValue={inputValue}
+        onSearchChange={setInputValue}
+        onSearchSubmit={handleSearchSubmit}
       />
       <div className={styles.layout}>
         {loading && stocks.length === 0 && (

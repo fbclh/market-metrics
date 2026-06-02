@@ -1,3 +1,150 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
+
+## Goal
+Replace the game-metrics codebase with a stock research platform.
+Remove all RAWG/game references and replace with Massive API/stocks.
+The app must run and show a working stock search grid before this 
+step is considered done.
+
+## Scope — Do NOT go beyond this
+- No Supabase, no AI, no analytics, no watchlist yet
+- No UI color changes — functional first
+
+## Do Not
+- Use axios — native fetch only
+- Use REACT_APP_ prefix
+- Expose MASSIVE_API_KEY to the browser
+- Commit broken code
+- Touch dev or main branch
+
+---
+
+## Task 1 — Update package.json
+Change name from "game-metrics" to "market-metrics"
+
+---
+
+## Task 2 — Environment variables
+Update .env.local.example:
+MASSIVE_API_KEY=your_massive_api_key_here
+COHERE_API_KEY=your_cohere_trial_key_here
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_legacy_jwt_anon_key
+
+Add MASSIVE_API_KEY to .env.local and .env
+
+---
+
+## Task 3 — Massive API client
+Replace src/api/API.ts entirely:
+
+Export one function: searchStocks({ query, page })
+- Calls /api/stocks (local proxy route)
+- Returns { results: StockResult[], total: number }
+
+Export type StockResult:
+{
+  ticker: string
+  name: string
+  market: string
+  locale: string
+  primary_exchange: string
+  type: string
+  active: boolean
+  logo_url?: string
+  description?: string
+}
+
+---
+
+## Task 4 — Massive proxy API route
+Replace app/api/games/route.ts with app/api/stocks/route.ts:
+- Delete app/api/games/route.ts
+- Create app/api/stocks/route.ts
+- GET handler that calls:
+  https://api.polygon.io/v3/reference/tickers
+  with params:
+    apiKey: process.env.MASSIVE_API_KEY
+    market: stocks
+    active: true
+    search: (from query param, if provided)
+    limit: 20
+    cursor: (for pagination, if provided)
+- Return the Massive API response as-is
+- Handle errors with appropriate status codes
+
+---
+
+## Task 5 — Update session cookie
+In lib/session.ts rename cookie from gm_session_id to mm_session_id
+
+---
+
+## Task 6 — Replace game grid with stock grid
+Replace src/components/Games.tsx with src/components/Stocks.tsx:
+- Remove all game card logic
+- Each stock card shows:
+  - Company logo (logo_url) or placeholder with ticker initials
+  - Ticker symbol (bold, large)
+  - Company name (muted, smaller)
+  - Exchange badge (NYSE, NASDAQ etc)
+- Dark card background #1a1a2e
+- Hover effect: slight brightness increase
+- Each card links to /stocks/[ticker]
+- Remove src/components/Games.tsx
+
+---
+
+## Task 7 — Replace Home page
+Replace src/pages/Home.tsx:
+- Title: "MarketMetrics"
+- Search placeholder: "Search stocks, ETFs..."
+- Use searchStocks() instead of fetchGames()
+- Remove pagination for now — Massive uses cursor-based pagination,
+  implement simple "Load More" button instead
+- Remove all game/RAWG references
+
+---
+
+## Task 8 — Update Nav
+In src/components/layout/Nav.tsx:
+- Change logo badge text from "GAME" to "MM"
+- Change nav links: "My List" → "Watchlist", "Dashboard" → "Dashboard"
+- Update href: /playlist → /watchlist
+
+---
+
+## Task 9 — Update layout
+In app/layout.tsx update:
+- Page title: "MarketMetrics"
+- Meta description: "Stock research and analytics platform"
+
+---
+
+## Task 10 — Remove old pages and routes
+Delete these files — they will be rebuilt in later steps:
+- app/games/[id]/page.tsx → will become app/stocks/[ticker]/page.tsx
+- app/api/games/[id]/route.ts → will become app/api/stocks/[ticker]/route.ts
+- app/playlist/page.tsx → will become app/watchlist/page.tsx
+- app/api/playlist/route.ts → will become app/api/watchlist/route.ts
+- app/api/playlist/[game_id]/route.ts → delete
+- src/components/GameDetail.tsx → delete
+
+---
+
+## Task 11 — Verify
+- npm run dev starts with zero errors
+- Stock search grid loads with real tickers from Massive API
+- Searching "Apple" returns AAPL and related stocks
+- Clicking a stock card does not crash (404 is fine — detail page is Step 2)
+- No RAWG or game references remain in active code
+- MM badge shows in nav
+
+---
+
+## Task 12 — Commit
+git add .
+git commit -m "step 1: replace RAWG with Massive API, stock search grid, rename to MarketMetrics"
+git push origin feature/market-metrics

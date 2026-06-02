@@ -34,7 +34,12 @@ data engineering, telemetry pipelines, and AI integration skills.
 1. Clone the repo
 2. Copy `.env.local.example` to `.env.local` and fill in values
 3. Run the SQL in `lib/supabase.ts` in your Supabase SQL editor
-4. `npm install && npm run dev`
+4. `npm install`
+5. **Run locally**
+
+```bash
+npm run dev
+```
 
 ## Environment Variables
 
@@ -45,10 +50,26 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_legacy_jwt_anon_key
 ```
 
-## Author
+## Keep-Alive Cron
 
-Fabio C.
+Supabase free tier pauses after 1 week of inactivity. A Vercel cron
+job pings `/api/ping` every 3 days to keep the database active:
+
+```json
+{
+  "crons": [
+    {
+      "path": "/api/ping",
+      "schedule": "0 12 */3 * *"
+    }
+  ]
+}
+```
 
 ## Attribution
 
 Market data provided by [Financial Modeling Prep](https://financialmodelingprep.com)
+
+## Author
+
+Fabio C.
