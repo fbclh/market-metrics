@@ -126,18 +126,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const mapped = activesResult.data
+    const results = activesResult.data
       .map(mapMostActiveItem)
-      .filter((item): item is StockResult => item !== null);
-
-    const sorted = mapped
-      .filter((item) => (item.marketCap ?? 0) > 0)
-      .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
-      .slice(0, 30);
+      .filter((item): item is StockResult => item !== null)
+      .slice(0, DEFAULT_LIST_LIMIT);
 
     return NextResponse.json({
-      results: sorted,
-      total: sorted.length,
+      results,
+      total: results.length,
     });
   } catch (error) {
     return NextResponse.json(
