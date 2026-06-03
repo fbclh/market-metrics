@@ -11,7 +11,7 @@ demonstrate what a production data pipeline actually looks like end to end.
 
 ## Live Demo
 
-**[View live demo →]()**
+**[View live demo →](https://market-metrics-fbclh.vercel.app/)**
 
 ## Features
 
