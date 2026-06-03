@@ -212,7 +212,7 @@ export default function AnalyticsPage() {
           </SectionCard>
 
           <SectionCard
-            title="All Users Portfolio Stats"
+            title="Portfolio Activity"
             className="lg:order-2 border-[var(--brand-accent-light)]/30 shadow-lg shadow-[var(--brand-accent-light)]/5"
           >
             {loading ? (
