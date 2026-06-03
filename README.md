@@ -39,8 +39,11 @@ cd market-metrics
 ```
 
 2. Copy `.env.local.example` to `.env.local` and fill in values
+
 3. Run the table schema SQL in `lib/supabase.ts` and `supabase/analytics_functions.sql` in your Supabase SQL editor
+
 4. `npm install`
+
 5. **Run locally**
 
 ```bash
