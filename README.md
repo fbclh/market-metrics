@@ -1,33 +1,33 @@
-# MarketMetrics
+# Market Metrics
 
-A stock research and behavioral analytics platform built to demonstrate
-data engineering, telemetry pipelines, and AI integration skills.
+MarketMetrics demonstrates the full stack of a data product — from 
+anonymous session tracking and server-side telemetry collection, to 
+Postgres aggregation functions, to a live Recharts dashboard and 
+AI-powered recommendations.
+
+Every chart on the analytics dashboard is powered by real user behavior — 
+searches, stock views, and portfolio changes logged in real time to 
+demonstrate what a production data pipeline actually looks like end to end.
 
 ## Live Demo
 
-[link — add after Vercel deploy]
+**[View live demo →]()**
 
 ## Features
 
-- Stock discovery powered by Financial Modeling Prep (FMP) API
-- Dow Jones default view with most active stocks fallback
-- Anonymous session tracking — no login required
-- Search and view telemetry logged to Supabase Postgres
 - Portfolio tracker with Watching / Researching / Invested statuses
-- Analytics dashboard with real usage data (Recharts)
+- Analytics dashboard with real usage data powered by Recharts
+- Search and view telemetry logged to Supabase Postgres in real time
+- Default view shows 30 most active US stocks by trading volume
+- Watchlist by sector breakdown using GICS sector classification
+- Anonymous session tracking — no login required
 - AI stock recommendations powered by Cohere
-- Watchlist by sector breakdown (GICS sectors)
-- Keep-alive cron to maintain Supabase free tier
+- Stock data powered by Financial Modeling Prep (FMP) API
+- Keep-alive cron job to maintain Supabase free tier activity
 
 ## Tech Stack
 
-- Next.js 14 App Router + TypeScript
-- Tailwind CSS
-- Supabase (Postgres)
-- Recharts
-- Financial Modeling Prep (FMP) API
-- Cohere AI API
-- Vercel
+Next.js · TypeScript · Supabase (Postgres) · Recharts · shadcn/ui · Tailwind CSS · (FMP) API · Cohere AI API
 
 ## Setup
 
@@ -39,7 +39,7 @@ cd market-metrics
 ```
 
 2. Copy `.env.local.example` to `.env.local` and fill in values
-3. Run the SQL in `lib/supabase.ts` in your Supabase SQL editor
+3. Run the table schema SQL in `lib/supabase.ts` and `supabase/analytics_functions.sql` in your Supabase SQL editor
 4. `npm install`
 5. **Run locally**
 
@@ -72,10 +72,14 @@ job pings `/api/ping` every 3 days to keep the database active:
 }
 ```
 
-## Attribution
-
-Market data provided by [Financial Modeling Prep](https://financialmodelingprep.com)
-
 ## Author
 
-Fabio C.
+Fabio Coelho
+
+## Attribution
+
+Data provided by [FMP](https://financialmodelingprep.com)
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

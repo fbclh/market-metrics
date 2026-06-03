@@ -25,7 +25,69 @@ type MostActiveItem = {
   marketCap?: number;
 };
 
+type ProfileItem = {
+  symbol?: string;
+  companyName?: string;
+  sector?: string;
+  exchange?: string;
+};
+
 const DEFAULT_LIST_LIMIT = 30;
+
+const US_EXCHANGES = new Set(['NYSE', 'NASDAQ', 'AMEX']);
+
+function isUsMostActive(item: MostActiveItem): boolean {
+  const exchange = item.exchange?.trim().toUpperCase() ?? '';
+  return US_EXCHANGES.has(exchange);
+}
+
+async function fetchExactTickerMatch(
+  query: string,
+  apiKey: string,
+): Promise<StockResult | null> {
+  const normalizedQuery = query.trim().toUpperCase();
+  const url = `https://financialmodelingprep.com/api/v3/profile/${encodeURIComponent(query.trim())}?apikey=${encodeURIComponent(apiKey)}`;
+
+  try {
+    const response = await fetch(url);
+    const text = await response.text();
+    let data: unknown = null;
+
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      return null;
+    }
+
+    if (!response.ok || !Array.isArray(data) || data.length === 0) {
+      return null;
+    }
+
+    const item = data[0] as ProfileItem;
+    const symbol = item.symbol?.trim();
+
+    if (!symbol || symbol.toUpperCase() !== normalizedQuery) {
+      return null;
+    }
+
+    const name = item.companyName?.trim();
+    const ticker = symbol.toUpperCase();
+
+    if (!name) {
+      return null;
+    }
+
+    return {
+      ticker,
+      name,
+      sector: item.sector ?? null,
+      exchange: item.exchange?.trim() || '',
+      logo_url: `https://financialmodelingprep.com/image-stock/${ticker}.png`,
+    };
+  } catch {
+    return null;
+  }
+}
 
 function mapSearchItem(item: SearchItem): StockResult | null {
   const ticker = item.symbol?.trim().toUpperCase();
@@ -85,6 +147,8 @@ export async function GET(request: NextRequest) {
 
   try {
     if (search) {
+      const exactMatch = await fetchExactTickerMatch(search, apiKey);
+
       const searchResult = await fetchFmpJson<SearchItem[]>('search-name', apiKey, {
         query: search,
         limit: '20',
@@ -97,9 +161,16 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const results = preferUsSearchResults(searchResult.data)
+      let results = preferUsSearchResults(searchResult.data)
         .map(mapSearchItem)
         .filter((item): item is StockResult => item !== null);
+
+      if (exactMatch) {
+        results = [
+          exactMatch,
+          ...results.filter((item) => item.ticker !== exactMatch.ticker),
+        ];
+      }
 
       return NextResponse.json({
         results,
@@ -127,6 +198,7 @@ export async function GET(request: NextRequest) {
     }
 
     const results = activesResult.data
+      .filter(isUsMostActive)
       .map(mapMostActiveItem)
       .filter((item): item is StockResult => item !== null)
       .slice(0, DEFAULT_LIST_LIMIT);

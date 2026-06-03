@@ -25,7 +25,7 @@ You are a senior Silicon Valley full stack engineer that writes modern, clean, r
 ## Stack
 - Framework: Next.js 14 App Router
 - Styling: Tailwind CSS
-- Components: shadcn/ui
+- Components: plain Tailwind CSS only
 - Charts: Recharts
 - Database: Supabase (Postgres)
 - External APIs: Financial Modeling Prep (FMP) API, Cohere AI

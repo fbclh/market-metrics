@@ -13,7 +13,10 @@ export async function GET() {
 
   if (error) {
     console.error('sector-breakdown error:', JSON.stringify(error));
-    return NextResponse.json({ data: null }, { status: 500 });
+    return NextResponse.json(
+      { data: null },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
+    );
   }
 
   const rows = (data ?? []).map((row: { sector: string; count: number | string }) => ({
@@ -21,5 +24,8 @@ export async function GET() {
     count: Number(row.count),
   }));
 
-  return NextResponse.json({ data: rows });
+  return NextResponse.json(
+    { data: rows },
+    { headers: { 'Cache-Control': 'no-store' } },
+  );
 }

@@ -32,12 +32,18 @@ export async function GET() {
         count: Number(row.count),
       }),
     );
-    return NextResponse.json({ data: rows });
+    return NextResponse.json(
+      { data: rows },
+      { headers: { 'Cache-Control': 'no-store' } },
+    );
   }
 
   if (error.code !== 'PGRST202') {
     console.error('top-assets error:', JSON.stringify(error));
-    return NextResponse.json({ data: null }, { status: 500 });
+    return NextResponse.json(
+      { data: null },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
+    );
   }
 
   const { data: rows, error: queryError } = await supabase
@@ -46,10 +52,14 @@ export async function GET() {
 
   if (queryError) {
     console.error('top-assets fallback error:', JSON.stringify(queryError));
-    return NextResponse.json({ data: null }, { status: 500 });
+    return NextResponse.json(
+      { data: null },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
+    );
   }
 
-  return NextResponse.json({
-    data: aggregateTopAssets(rows ?? []),
-  });
+  return NextResponse.json(
+    { data: aggregateTopAssets(rows ?? []) },
+    { headers: { 'Cache-Control': 'no-store' } },
+  );
 }

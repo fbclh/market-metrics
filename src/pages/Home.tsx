@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getSessionId } from '@/lib/session';
 import { resolveStockLoadError } from '@/lib/api-errors';
 import { searchStocks, type StockResult } from '../api/API';
@@ -9,6 +10,10 @@ import { HomeHeader } from '../components/layout/HomeHeader';
 import styles from '../styles/Home.module.css';
 
 export const Home = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchFromUrl = searchParams?.get('search')?.trim() ?? '';
+
   const [stocks, setStocks] = useState<StockResult[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
@@ -74,16 +79,24 @@ export const Home = () => {
   }, [activeSearch, loadStocks]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const search = params.get('search');
-    if (search) {
-      setInputValue(search);
-      setActiveSearch(search.trim());
-    }
-  }, []);
+    setInputValue(searchFromUrl);
+    setActiveSearch(searchFromUrl);
+  }, [searchFromUrl]);
 
   const handleSearchSubmit = (query: string) => {
-    setActiveSearch(query);
+    const trimmed = query.trim();
+    if (trimmed) {
+      router.replace(`/?search=${encodeURIComponent(trimmed)}`);
+      return;
+    }
+
+    router.replace('/');
+  };
+
+  const handleLogoClick = () => {
+    setInputValue('');
+    setActiveSearch('');
+    router.replace('/');
   };
 
   const handleLoadMore = () => {
@@ -100,6 +113,7 @@ export const Home = () => {
         searchValue={inputValue}
         onSearchChange={setInputValue}
         onSearchSubmit={handleSearchSubmit}
+        onLogoClick={handleLogoClick}
       />
       <div className={styles.layout}>
         {loading && stocks.length === 0 && (

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { normalizeSearchQuery, formatSearchQueryDisplay } from '@/lib/normalize-search-query';
 
 type SearchTelemetryBody = {
   query?: unknown;
@@ -19,11 +18,13 @@ export async function POST(request: Request) {
     );
   }
 
-  const query = typeof body.query === 'string' ? normalizeSearchQuery(body.query) : '';
+  const query = typeof body.query === 'string' ? body.query : '';
   const sessionId =
     typeof body.session_id === 'string' ? body.session_id.trim() : '';
 
-  if (!query) {
+  const normalizedQuery = query.trim();
+
+  if (!normalizedQuery) {
     return NextResponse.json(
       { ok: false, error: 'query must be a non-empty string.' },
       { status: 400 },
@@ -41,8 +42,6 @@ export async function POST(request: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
-
-  const normalizedQuery = formatSearchQueryDisplay(query);
 
   const { error } = await supabase.from('search_events').insert({
     session_id: sessionId,

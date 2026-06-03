@@ -1,23 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { formatSearchQueryDisplay } from '@/lib/normalize-search-query';
 
 export const dynamic = 'force-dynamic';
-
-function mergeSearchCounts(
-  rows: { query: string; count: number | string }[],
-): { query: string; count: number }[] {
-  const counts = new Map<string, number>();
-
-  for (const row of rows) {
-    const query = formatSearchQueryDisplay(row.query);
-    counts.set(query, (counts.get(query) ?? 0) + Number(row.count));
-  }
-
-  return Array.from(counts.entries())
-    .map(([query, count]) => ({ query, count }))
-    .sort((a, b) => b.count - a.count);
-}
 
 export async function GET() {
   const supabase = createClient(
@@ -29,8 +13,19 @@ export async function GET() {
 
   if (error) {
     console.error('top-searches error:', JSON.stringify(error));
-    return NextResponse.json({ data: null }, { status: 500 });
+    return NextResponse.json(
+      { data: null },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
+    );
   }
 
-  return NextResponse.json({ data: mergeSearchCounts(data ?? []) });
+  const rows = (data ?? []).map((row: { query: string; count: number | string }) => ({
+    query: row.query,
+    count: Number(row.count),
+  }));
+
+  return NextResponse.json(
+    { data: rows },
+    { headers: { 'Cache-Control': 'no-store' } },
+  );
 }

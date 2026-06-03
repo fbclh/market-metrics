@@ -47,7 +47,14 @@ export const CHART_COLORS = {
   tooltipBorder: '#334155',
 } as const;
 
+/** Recharts default tooltip cursor is fill #ccc — too bright on dark charts. */
+export const chartTooltipCursor = {
+  fill: 'rgba(255, 255, 255, 0.06)',
+  stroke: 'none',
+} as const;
+
 export const chartTooltipStyle = {
+  cursor: chartTooltipCursor,
   contentStyle: {
     backgroundColor: CHART_COLORS.tooltipBg,
     border: `1px solid ${CHART_COLORS.tooltipBorder}`,

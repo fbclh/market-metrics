@@ -15,7 +15,10 @@ export async function GET() {
 
   if (error) {
     console.error('watchlist-stats error:', JSON.stringify(error));
-    return NextResponse.json({ data: null }, { status: 500 });
+    return NextResponse.json(
+      { data: null },
+      { status: 500, headers: { 'Cache-Control': 'no-store' } },
+    );
   }
 
   const rows = data ?? [];
@@ -23,12 +26,15 @@ export async function GET() {
   const researching = rows.filter(r => r.status === 'researching').length;
   const invested = rows.filter(r => r.status === 'invested').length;
 
-  return NextResponse.json({
-    data: {
-      watching,
-      researching,
-      invested,
-      total: watching + researching + invested,
-    }
-  });
+  return NextResponse.json(
+    {
+      data: {
+        watching,
+        researching,
+        invested,
+        total: watching + researching + invested,
+      },
+    },
+    { headers: { 'Cache-Control': 'no-store' } },
+  );
 }

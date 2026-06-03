@@ -78,7 +78,7 @@ function SectionCard({
 
 async function fetchAnalytics<T>(path: string): Promise<T | null> {
   try {
-    const response = await fetch(path);
+    const response = await fetch(path, { cache: 'no-store' });
     if (!response.ok) return null;
     return response.json();
   } catch {
@@ -212,7 +212,7 @@ export default function AnalyticsPage() {
           </SectionCard>
 
           <SectionCard
-            title="My Portfolio"
+            title="All Users Portfolio Stats"
             className="lg:order-2 border-[var(--brand-accent-light)]/30 shadow-lg shadow-[var(--brand-accent-light)]/5"
           >
             {loading ? (
@@ -220,8 +220,8 @@ export default function AnalyticsPage() {
             ) : watchlistStats.total === 0 || pieData.length === 0 ? (
               <EmptyState />
             ) : (
-              <div className="flex flex-col items-center">
-                <div className="h-[260px] w-full">
+              <div className="flex w-full flex-col items-center">
+                <div className="relative mx-auto size-[220px] sm:size-[240px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                       <Pie
@@ -230,42 +230,39 @@ export default function AnalyticsPage() {
                         nameKey="name"
                         cx="50%"
                         cy="50%"
-                        innerRadius={72}
-                        outerRadius={98}
+                        innerRadius="60%"
+                        outerRadius="82%"
                         paddingAngle={2}
                       >
                         {pieData.map((entry) => (
                           <Cell key={entry.name} fill={entry.color} stroke="transparent" />
                         ))}
                       </Pie>
-                      <text
-                        x="50%"
-                        y="50%"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        fill="#ffffff"
-                        className="text-4xl font-bold"
-                      >
-                        {watchlistStats.total}
-                      </text>
-                      <text
-                        x="50%"
-                        y="58%"
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        fill={CHART_COLORS.label}
-                        className="text-sm"
-                      >
-                        total
-                      </text>
                     </PieChart>
                   </ResponsiveContainer>
+                  <div
+                    className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"
+                    aria-hidden="true"
+                  >
+                    <span className="text-4xl font-bold leading-none text-white">
+                      {watchlistStats.total}
+                    </span>
+                    <span className="mt-1 text-sm text-gray-400">total</span>
+                  </div>
                 </div>
-                <ul className="mt-4 flex w-full flex-wrap items-center justify-center gap-x-8 gap-y-2">
+                <ul
+                  className={`mt-5 grid w-full max-w-sm gap-x-6 gap-y-2 justify-items-center text-sm text-gray-300 ${
+                    pieData.length === 1
+                      ? 'grid-cols-1'
+                      : pieData.length === 2
+                        ? 'grid-cols-2'
+                        : 'grid-cols-3'
+                  }`}
+                >
                   {pieData.map((entry) => (
                     <li
                       key={entry.name}
-                      className="flex items-center gap-2 text-sm text-gray-300"
+                      className="flex items-center justify-center gap-2 whitespace-nowrap"
                     >
                       <span
                         className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"

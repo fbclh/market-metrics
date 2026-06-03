@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
-import { getSessionId } from '@/lib/session';
 import styles from '../../styles/Header.module.css';
 
 type SearchFormProps = {
@@ -57,15 +56,6 @@ export function SearchForm({ value, onChange, onSubmit }: SearchFormProps) {
       onSubmit(query);
       return;
     }
-
-    fetch('/api/telemetry/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query,
-        session_id: getSessionId(),
-      }),
-    }).catch(() => {});
 
     router.push(`/?search=${encodeURIComponent(query)}`);
   };

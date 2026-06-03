@@ -10,12 +10,14 @@ type HomeHeaderProps = {
   searchValue: string;
   onSearchChange: (value: string) => void;
   onSearchSubmit: (query: string) => void;
+  onLogoClick?: () => void;
 };
 
 export function HomeHeader({
   searchValue,
   onSearchChange,
   onSearchSubmit,
+  onLogoClick,
 }: HomeHeaderProps) {
   const [hidden, setHidden] = useState(false);
 
@@ -49,7 +51,7 @@ export function HomeHeader({
     >
       <div className={styles.inner}>
         <div className={styles.brand}>
-          <Logo />
+          <Logo href="/" onClick={onLogoClick} />
         </div>
         <div className={styles.navWrap}>
           <Nav />

@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Watchlist POST failed:', error.message);
+    console.error('Watchlist GET failed:', error.message);
     return NextResponse.json(
       { ok: false, error: error.message },
       { status: 500 },

@@ -13,14 +13,14 @@ const linkStyle = {
 export function FmpAttribution() {
   return (
     <span style={wrapperStyle}>
-      Market data provided by{' '}
+      Data provided by{' '}
       <a
         href="https://financialmodelingprep.com"
         target="_blank"
         rel="noopener noreferrer"
         style={linkStyle}
       >
-        Financial Modeling Prep
+        FMP
       </a>
     </span>
   );

@@ -47,7 +47,7 @@ as $$
   where created_at >= now() - interval '7 days'
   group by query
   order by count desc
-  limit 10;
+  limit 5;
 $$;
 
 create or replace function analytics_watchlist_stats()
