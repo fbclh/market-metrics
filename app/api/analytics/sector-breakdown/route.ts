@@ -6,10 +6,12 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, 
   );
 
   const { data, error } = await supabase.rpc('analytics_sector_breakdown');
+
+  console.log('sector-breakdown raw data:', JSON.stringify(data));
 
   if (error) {
     console.error('sector-breakdown error:', JSON.stringify(error));
