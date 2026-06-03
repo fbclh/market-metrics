@@ -96,7 +96,7 @@ Create vercel.json in the repo root:
 ## Task 5 — README update
 Update README.md:
 
-# MarketMetrics
+# Market Metrics
 
 A stock research and behavioral analytics platform built to demonstrate
 data engineering, telemetry pipelines, and AI integration skills.

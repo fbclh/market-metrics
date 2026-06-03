@@ -1,6 +1,6 @@
 # Market Metrics
 
-MarketMetrics demonstrates the full stack of a data product — from 
+Market Metrics demonstrates the full stack of a data product — from 
 anonymous session tracking and server-side telemetry collection, to 
 Postgres aggregation functions, to a live Recharts dashboard and 
 AI-powered recommendations.

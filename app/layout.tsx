@@ -3,7 +3,7 @@ import { AppLayout } from '@/src/components/layout/AppLayout';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'MarketMetrics',
+  title: 'Market Metrics',
   description: 'Stock research and analytics platform',
 };
 

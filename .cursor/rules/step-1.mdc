@@ -99,7 +99,7 @@ Replace src/components/Games.tsx with src/components/Stocks.tsx:
 
 ## Task 7 — Replace Home page
 Replace src/pages/Home.tsx:
-- Title: "MarketMetrics"
+- Title: "Market Metrics"
 - Search placeholder: "Search stocks, ETFs..."
 - Use searchStocks() instead of fetchGames()
 - Remove pagination for now — Massive uses cursor-based pagination,
@@ -118,7 +118,7 @@ In src/components/layout/Nav.tsx:
 
 ## Task 9 — Update layout
 In app/layout.tsx update:
-- Page title: "MarketMetrics"
+- Page title: "Market Metrics"
 - Meta description: "Stock research and analytics platform"
 
 ---
@@ -146,5 +146,5 @@ Delete these files — they will be rebuilt in later steps:
 
 ## Task 12 — Commit
 git add .
-git commit -m "step 1: replace RAWG with Massive API, stock search grid, rename to MarketMetrics"
+git commit -m "step 1: replace RAWG with Massive API, stock search grid, rename to Market Metrics"
 git push origin feature/market-metrics

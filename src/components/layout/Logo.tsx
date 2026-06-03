@@ -13,7 +13,7 @@ export function Logo({ href = '/', className, onClick }: LogoProps) {
       href={href}
       onClick={onClick}
       className={`${styles.logoLink}${className ? ` ${className}` : ''}`}
-      aria-label="MarketMetrics home"
+      aria-label="Market Metrics home"
     >
       <span className={styles.brandName}>
         Market <span className={styles.brandAccent}>Metrics</span>
