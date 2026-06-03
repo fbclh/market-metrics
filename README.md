@@ -9,6 +9,18 @@ Every chart on the analytics dashboard is powered by real user behavior —
 searches, stock views, and portfolio changes logged in real time to 
 demonstrate what a production data pipeline actually looks like end to end.
 
+### Home
+
+![Home — stock discovery grid](./docs/screenshots/home.png)
+
+### Dashboard
+
+![Dashboard — analytics](./docs/screenshots/dashboard.png)
+
+### Watchlist
+
+![Watchlist — portfolio and recommendations](./docs/screenshots/watchlist.png)
+
 ## Live Demo
 
 **[View live demo →](https://market-metrics-fbclh.vercel.app/)**
