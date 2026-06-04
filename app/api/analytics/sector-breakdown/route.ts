@@ -16,7 +16,7 @@ export async function GET() {
   if (error) {
     console.error('sector-breakdown error:', JSON.stringify(error));
     return NextResponse.json(
-      { data: null, error: error.message, code: error.code },
+      { data: null },
       { status: 500, headers: { 'Cache-Control': 'no-store' } },
     );
   }
