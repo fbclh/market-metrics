@@ -11,7 +11,9 @@ export async function GET() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
-  const { data, error } = await supabase.rpc('analytics_top_searches');
+  const { data, error } = await supabase
+    .from('search_events')
+    .select('query');
 
   if (error) {
     console.error('top-searches error:', JSON.stringify(error));
@@ -21,13 +23,20 @@ export async function GET() {
     );
   }
 
-  const rows = (data ?? []).map((row: { query: string; count: number | string }) => ({
-    query: row.query,
-    count: Number(row.count),
-  }));
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    const key = row.query.trim().toLowerCase();
+    const display = row.query.trim();
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  const result = Array.from(counts.entries())
+    .map(([key, count]) => ({ query: key, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
 
   return NextResponse.json(
-    { data: rows },
+    { data: result },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }

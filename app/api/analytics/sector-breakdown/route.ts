@@ -11,7 +11,11 @@ export async function GET() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
-  const { data, error } = await supabase.rpc('analytics_sector_breakdown');
+  const { data, error } = await supabase
+    .from('watchlist')
+    .select('sector')
+    .not('sector', 'is', null)
+    .neq('sector', '');
 
   if (error) {
     console.error('sector-breakdown error:', JSON.stringify(error));
@@ -21,13 +25,17 @@ export async function GET() {
     );
   }
 
-  const rows = (data ?? []).map((row: { sector: string; count: number | string }) => ({
-    sector: row.sector,
-    count: Number(row.count),
-  }));
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    counts.set(row.sector, (counts.get(row.sector) ?? 0) + 1);
+  }
+
+  const result = Array.from(counts.entries())
+    .map(([sector, count]) => ({ sector, count }))
+    .sort((a, b) => b.count - a.count);
 
   return NextResponse.json(
-    { data: rows },
+    { data: result },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }

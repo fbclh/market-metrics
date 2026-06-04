@@ -28,15 +28,13 @@ export async function GET() {
   const researching = rows.filter(r => r.status === 'researching').length;
   const invested = rows.filter(r => r.status === 'invested').length;
 
-  return NextResponse.json(
-    {
-      data: {
-        watching,
-        researching,
-        invested,
-        total: watching + researching + invested,
-      },
+  return NextResponse.json({
+    data: {
+      watching,
+      researching,
+      invested,
+      total: watching + researching + invested,
     },
-    { headers: { 'Cache-Control': 'no-store' } },
-  );
+    headers: { 'Cache-Control': 'no-store' },
+  });
 }

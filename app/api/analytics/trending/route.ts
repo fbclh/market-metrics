@@ -11,7 +11,13 @@ export async function GET() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
-  const { data, error } = await supabase.rpc('analytics_trending');
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const { data, error } = await supabase
+    .from('search_events')
+    .select('query')
+    .gte('created_at', sevenDaysAgo.toISOString());
 
   if (error) {
     console.error('trending error:', JSON.stringify(error));
@@ -21,15 +27,19 @@ export async function GET() {
     );
   }
 
-  const rows = (data ?? [])
-    .map((row: { query: string; count: number | string }) => ({
-      query: row.query,
-      count: Number(row.count),
-    }))
-    .slice(0, 5);
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    const key = row.query.trim().toLowerCase();
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  const result = Array.from(counts.entries())
+    .map(([query, count]) => ({ query, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
 
   return NextResponse.json(
-    { data: rows },
+    { data: result },
     { headers: { 'Cache-Control': 'no-store' } },
   );
 }
