@@ -8,7 +8,7 @@ export const revalidate = 0;
 export async function GET() {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, 
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
   const { data, error } = await supabase.rpc('analytics_sector_breakdown');
@@ -16,7 +16,7 @@ export async function GET() {
   if (error) {
     console.error('sector-breakdown error:', JSON.stringify(error));
     return NextResponse.json(
-      { data: null },
+      { data: null, error: error.message, code: error.code },
       { status: 500, headers: { 'Cache-Control': 'no-store' } },
     );
   }
