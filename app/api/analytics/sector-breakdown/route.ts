@@ -11,8 +11,6 @@ export async function GET() {
 
   const { data, error } = await supabase.rpc('analytics_sector_breakdown');
 
-  console.log('sector-breakdown raw data:', JSON.stringify(data));
-
   if (error) {
     console.error('sector-breakdown error:', JSON.stringify(error));
     return NextResponse.json(
